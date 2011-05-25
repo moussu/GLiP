@@ -1,0 +1,34 @@
+___________________________________________________________
+       _  _  _      _               _      _  _  _  _
+    _ (_)(_)(_) _  (_)             (_)    (_)(_)(_)(_)_
+   (_)         (_) (_)           _  _     (_)        (_)
+   (_)    _  _  _  (_)          (_)(_)    (_) _  _  _(_)
+   (_)   (_)(_)(_) (_)             (_)    (_)(_)(_)(_)
+   (_)         (_) (_)             (_)    (_)
+   (_) _  _  _ (_) (_) _  _  _   _ (_) _  (_)
+      (_)(_)(_)(_) (_)(_)(_)(_) (_)(_)(_) (_) r o j e c t
+
+                             Great LED Interactive Puzzle
+___________________________________________________________
+
+This project was realized at Télécom ParisTech and is entirely based
+on the work of other students. I started from and used the source code
+of the following projects:
+
+The GLiP project (GNU GPL v3) realized in 2010 featuring:
+    - Mickaël Camus <mickaelcamus.mc@gmail.com>
+    - Enzo Casasola <enzocasasola@gmail.com>
+    - Julie Estivie <juliestivie@gmail.com>
+    - Florent Matignon <florent.matignon@gmail.com>
+
+The MBLed project realized in 2011 featuring:
+    - Benjamin Bonny <benjamin.bonny@gmail.com>
+    - Cédric Le Ninivin <cedriclen@gmail.com>
+    - Guillaume Normand <guillaume.normand.gn@gmail.com>
+
+The original idea and the management of all these projects including
+this one are credited to:
+     - Alexis Polti <polti@telecom-paristech.fr>
+     - Samuel Tardieu <tardieu@telecom-paristech.fr>
+
+Clément Moussu <clement.moussu@gmail.com>
