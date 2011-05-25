@@ -1,0 +1,6 @@
+[submodule "legacy/GLiP"]
+	path = legacy/GLiP
+	url = elecinf381@hg.comelec.enst.fr:2010/GLiP.git
+[submodule "legacy/MBLed"]
+	path = legacy/MBLed
+	url = elecinf381@hg.comelec.enst.fr:2011/MBLed.git
