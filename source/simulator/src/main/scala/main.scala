@@ -14,23 +14,36 @@ class Simulator extends PApplet {
   var selected: Option[Block] = None
   var offsetX: Int = 0
   var offsetY: Int = 0
+  val eureka = loadFont("Eureka-90.vlw")
 
   override def setup() = {
     size(800, 600)
     frameRate(30)
     smooth()
-
+    textFont(eureka)
     pool.generateBlockMatrix(4, width, height)
   }
 
+  override def keyPressed() {
+    if (key == ' ') {
+      Block.detailed = ! Block.detailed
+    }
+  }
+
   override def mousePressed() {
-    selected = pool.getBlockAt(mouseX, mouseY)
-    selected match {
-      case Some(b) => {
-        offsetX = mouseX - b.x
-        offsetY = mouseY - b.y
+    if (mouseButton == LEFT) {
+      selected = pool.getBlockAt(mouseX, mouseY)
+      selected match {
+        case Some(b) => {
+          offsetX = mouseX - b.x
+          offsetY = mouseY - b.y
+        }
+        case None =>
       }
-      case None =>
+    }
+    else {
+      pool.getBlockAt(mouseX, mouseY) foreach { b => b.rotate() }
+      redraw()
     }
   }
 
@@ -38,12 +51,9 @@ class Simulator extends PApplet {
     if (selected != None && pool.getBlockAt(mouseX, mouseY) != selected)
       selected = None
     else
-      selected match {
-        case Some(b) => {
+      selected foreach { b =>
           pool.moveBlock(b, mouseX - offsetX, mouseY - offsetY)
           redraw()
-        }
-        case None =>
       }
   }
 
@@ -80,29 +90,66 @@ class Led(r: Int, g: Int, b: Int) {
   def color_=(c: Color) = _color = c
 
   def draw(context: PApplet) = {
-    var a: Double = _color.max.toDouble / 255.0
-    var c: Color = _color map (x => (x.toDouble * a + 255.0 * (1 - a)).toInt)
+    val a = _color.max.toDouble / 255.0
+    val c = _color map (x => (x.toDouble * a + 255.0 * (1 - a)).toInt)
     context.fill(c(0), c(1), c(2))
     context.ellipse(0, 0, Led.diameter, Led.diameter)
   }
 }
 
+object Block {
+  object Dir extends Enumeration {
+    type Dir = Value
+    val N, S, E, W = Value
+  }
+
+  type Dir = Dir.Value
+  type IR = (Block, Dir)
+  type Com = (IR, IR)
+  type ComList = List[Com]
+  var count = 0
+  var detailed = true
+
+  def drawConnection(context: PApplet, cn: Com) = {
+    val ir1 = cn._1
+    val b1 = ir1._1
+    val d1 = ir1._2
+
+    val ir2 = cn._2
+    val b2 = ir2._1
+    val d2 = ir2._2
+
+    var p1 = b1.getIrAt(d1)
+    var p2 = b2.getIrAt(d2)
+
+    context.line(p1._1, p1._2, p2._1, p2._2)
+  }
+}
+
 class Block(var x: Int, var y: Int) {
+  import Block._
+
   type Point = List[Int]
 
   val margin = 2
 
-  var selected = false
+  private var id = count + 1
+  private var angle = 0
   private val _layout: Point = List(8, 8)
   private val _elts:   Int   = _layout(0) * _layout(1)
   private var _leds:   Array[Array[Led]] =
     Array.ofDim(_layout(0), _layout(1))
 
+  count = id
   for (i <- 0 until _layout(1); j <- 0 until _layout(0)) {
     _leds(i)(j) = new Led
   }
 
   def this() = this(0, 0)
+
+  override def toString() = {
+    "[" + id.toString + "]"
+  }
 
   def move(newX: Int, newY: Int) = {
     x = newX
@@ -113,12 +160,12 @@ class Block(var x: Int, var y: Int) {
     _leds(y)(x)
   }
 
-  def width(): Int = (_layout(0) + 1) * (2 * margin) + _layout(0) * Led.diameter
-  def height(): Int = (_layout(1) + 1) * (2 * margin) + _layout(1) * Led.diameter
-  def startx(): Int = x -(width + Led.diameter) / 2 - margin
-  def starty(): Int = y -(height + Led.diameter) / 2 - margin
-  def stopx(): Int = x + (width + Led.diameter) / 2 + margin
-  def stopy(): Int = y + (height + Led.diameter) / 2 + margin
+  def width(): Int = _layout(0) * (2 * margin + Led.diameter)
+  def height(): Int = _layout(1) * (2 * margin + Led.diameter)
+  def startx(): Int = x - width  / 2
+  def starty(): Int = y - height / 2
+  def stopx(): Int = x + width  / 2 + 1
+  def stopy(): Int = y + height / 2 + 1
 
   def isInside(x: Int, y: Int): Boolean = {
     if (x < startx || x >= startx + width)
@@ -128,28 +175,78 @@ class Block(var x: Int, var y: Int) {
     return true
   }
 
-  def asRectangle(): `Rectangle` = new `Rectangle`(x, y, width, height)
+  def asRectangle(): `Rectangle` =
+    new `Rectangle`(x, y, width, height)
 
   def intersects(other: Block): Boolean = {
-    return asRectangle().intersects(other.asRectangle)
+    asRectangle().intersects(other.asRectangle)
+  }
+
+  def getIrAt(dir: Dir): (Int, Int) = {
+    getIr()(dir)
+  }
+
+  def getIr() = {
+    val dirs = Array(Dir.N, Dir.W, Dir.S, Dir.E)
+    val points = Array((x,        starty()),
+                       (startx(), y),
+                       (x,        stopy()),
+                       (stopx(),  y))
+
+    var map = Map((dirs(angle / 90 % 4), points(0)))
+    for (i <- 1 to 3) {
+      map += ((dirs((i + angle / 90) % 4), points(i)))
+    }
+    map
+  }
+
+  def rotate() = {
+    angle += 90
+    angle = angle % 360
+  }
+
+  def communicates(other: Block): ComList = {
+    val maxDist = 50.0
+    var res: ComList = List()
+    for ((d1, p1) <- getIr(); (d2, p2) <- other.getIr()) {
+      if (PApplet.dist(p1._1, p1._2, p2._1, p2._2) < maxDist) {
+        res = res :+ ((this, d1), (other, d2))
+      }
+    }
+    res
   }
 
   def leds: Array[Array[Led]] = _leds
 
-  def draw(context: PApplet) = {
-    if (selected)
-      context.fill(125, 0, 0, 0)
+  def drawIR(context: PApplet) = {
+    if (detailed) {
+      context.pushMatrix()
+      context.translate(x, y)
+      context.fill(255, 0, 0, 30)
+      context.noStroke()
+      context.ellipse(stopx - x,  0,          50, 50)
+      context.ellipse(0,          stopy - y,  50, 50)
+      context.ellipse(startx - x, 0,          50, 50)
+      context.ellipse(0,          starty - y, 50, 50)
+      context.popMatrix()
+    }
+  }
 
+  def draw(context: PApplet) = {
     context.pushMatrix()
     context.translate(x, y)
+    context.rotate(angle * PI / 180.0f)
     context.fill(0)
     context.stroke(255)
     context.rect(startx - x, starty - y, width, height)
 
     context.noStroke()
     for (i <- 0 until _layout(1); j <- 0 until _layout(0)) {
-      val x: Int = (j - _layout(0) / 2) * (2 * margin + Led.diameter)
-      val y: Int = (i - _layout(1) / 2) * (2 * margin + Led.diameter)
+      val offset =  + Led.diameter / 2 + margin
+      val x: Int = (j - _layout(0) / 2) *
+                   (2 * margin + Led.diameter) + offset
+      val y: Int = (i - _layout(1) / 2) *
+                   (2 * margin + Led.diameter) + offset
       context.pushMatrix()
       context.fill(20)
       context
@@ -157,6 +254,28 @@ class Block(var x: Int, var y: Int) {
       _leds(i)(j).draw(context)
       context.popMatrix()
     }
+
+    if (detailed) {
+      context.fill(255, 255, 255, 200)
+
+      context.textSize(30)
+      context.pushMatrix()
+      context.rotate(-angle * PI / 180.f)
+      context.scale(0.8f)
+      for ((d, p) <- getIr()) {
+        val text = d.toString
+        val offsetX = context.textWidth(text) / 2
+        val offsetY = 12
+        context.text(text, p._1 - x - offsetX,
+                           p._2 - y - offsetY, 100, 100)
+      }
+      context.popMatrix()
+
+      val text = if (id < 10) "0" + id else id.toString
+      context.textSize(70)
+      context.text(text, -context.textWidth(text) / 2, -35, width, height)
+    }
+
     context.popMatrix()
   }
 }
@@ -224,9 +343,28 @@ class Pool {
 
   private var cnt: Int = 0
   def draw(context: PApplet) = {
-    for (b <- pool) {
+    pool foreach { b =>
+      b.drawIR(context)
+    }
+
+    context.stroke(255, 0, 0, 50)
+    context.strokeWeight(3)
+    for (i <- 0 until pool.size; j <- i + 1 until pool.size) {
+      val b1 = pool(i)
+      val b2 = pool(j)
+      val maxDist = b1.width / 2 + b2.width / 2 + 50.0
+      if (PApplet.dist(b1.x, b1.y, b2.x, b2.y) < maxDist) {
+        for (cn <- b1 communicates b2) {
+          Block.drawConnection(context, cn)
+        }
+      }
+    }
+    context.strokeWeight(1)
+
+    pool foreach { b =>
       if (cnt == 0)
-        b.leds.foreach(row => row.foreach(led => led.randomColor()))
+        b.leds.foreach(row =>
+          row.foreach(led => led.randomColor()))
       b.draw(context)
     }
 
