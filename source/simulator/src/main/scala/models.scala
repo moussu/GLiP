@@ -1,14 +1,6 @@
 import processing.core._
-import spde.core._
-import PConstants._
-import scala.math._
-import scala.actors._
-import scala.util.Random
 import scala.collection.mutable._
-import java.awt.Rectangle
-import java.io._
-import java.net._
-
+import scala.math._
 import simulator.view._
 
 package simulator.ether {
