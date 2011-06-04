@@ -20,7 +20,6 @@ package simulator.view {
 
     def this() = {
       this(0, 0, 0)
-      this.randomColor
     }
 
     def randomColor() = {
@@ -36,9 +35,10 @@ package simulator.view {
     def color_=(c: Color) = _color = c
 
     def draw(context: PApplet) = {
-      val a = _color.max.toDouble / 255.0
-      val c = _color map (x => (x.toDouble * a + 255.0 * (1 - a)).toInt)
-      context.fill(c(0), c(1), c(2))
+      context.stroke(50)
+      //val a = _color.max.toDouble / 255.0
+      //val c = _color map (x => (x.toDouble * a + 255.0 * (1 - a)).toInt)
+      context.fill(_color(0), _color(1), _color(2))
       context.ellipse(0, 0, Led.diameter, Led.diameter)
     }
   }

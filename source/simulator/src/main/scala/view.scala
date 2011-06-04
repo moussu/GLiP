@@ -6,10 +6,11 @@ import scala.collection.mutable._
 import java.awt.Rectangle
 import scala.actors._
 import simulator.ether._
+import scala.concurrent._
 
 package simulator.view {
 
-  class View(model: Model) extends PApplet {
+  class View(model: Model, val lock: Lock) extends PApplet {
     private val eureka = loadFont("Eureka-90.vlw")
     private val w = 800
     private val h = 600
@@ -27,8 +28,6 @@ package simulator.view {
       frameRate(30)
       smooth()
       textFont(eureka)
-      for (i <- 0 until 9)
-        pool.addBlock()
     }
 
     override def keyPressed() {
@@ -69,7 +68,7 @@ package simulator.view {
 
     override def draw() = {
       background(50)
-      pool.draw(this, detailed)
+      pool.draw(this, lock, detailed)
     }
 
     def createFrame() = {
