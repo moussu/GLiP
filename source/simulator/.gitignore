@@ -3,3 +3,4 @@ project/plugins/project/
 src_managed/
 lib_managed/
 project/boot/
+!main
