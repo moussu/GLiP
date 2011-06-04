@@ -56,7 +56,7 @@ package simulator.ether {
     def drawConnections(context: PApplet)
   }
 
-  class SimpleModel extends Model {
+  object SimpleModel extends Model {
     import Model._
 
     val maxDist = min(Block.height, Block.width) / 2

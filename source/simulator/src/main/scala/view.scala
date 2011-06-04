@@ -9,28 +9,24 @@ import simulator.ether._
 
 package simulator.view {
 
-  object View extends Actor {
-    var pool: Pool = null
+  class View(model: Model) extends PApplet {
+    private val eureka = loadFont("Eureka-90.vlw")
+    private val w = 800
+    private val h = 600
 
-    def act() =
-      PApplet.main(Array("simulator.view.View"))
-  }
+    private var pool: Pool = new Pool(model, w, h)
+    private var selected: Option[Block] = None
+    private var detailed: Boolean = true
+    private var offsetX:  Int = 0
+    private var offsetY:  Int = 0
 
-  class View extends PApplet {
-    import View._
-
-    var selected: Option[Block] = None
-    var detailed: Boolean = true
-    var offsetX: Int = 0
-    var offsetY: Int = 0
-    val eureka = loadFont("Eureka-90.vlw")
+    def getPool(): Pool = pool
 
     override def setup() = {
-      size(800, 600)
+      size(w, h)
       frameRate(30)
       smooth()
       textFont(eureka)
-      pool = new Pool(width, height)
       for (i <- 0 until 9)
         pool.addBlock()
     }
@@ -74,6 +70,14 @@ package simulator.view {
     override def draw() = {
       background(50)
       pool.draw(this, detailed)
+    }
+
+    def createFrame() = {
+      val frame = new javax.swing.JFrame("Simulator")
+      frame.getContentPane().add(this)
+      init()
+      frame.pack()
+      frame.setVisible(true)
     }
   }
 

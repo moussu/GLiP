@@ -11,8 +11,11 @@ package simulator {
 
   object Simulator {
     def main(args: Array[String]) {
-      View.start()
-      new Server(View.pool).start()
+      val view   = new   View(SimpleModel)
+      val server = new Server(view.getPool)
+
+      view.createFrame()
+      server.start()
     }
   }
 

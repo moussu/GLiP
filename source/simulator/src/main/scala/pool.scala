@@ -8,12 +8,11 @@ import simulator.ether._
 
 package simulator.view {
 
-  class Pool(val windowWidth: Int, val windowHeight: Int) {
+  class Pool(val model: Model, val windowWidth: Int, val windowHeight: Int) {
     import Model._
     import Block._
 
     private var pool: LinkedList[Block] = LinkedList()
-    val model: Model = new SimpleModel
     val padding: Int = 10
     val maxHeight: Int = 4 * (Block.height + padding)
     val maxWidth:  Int = 4 * (Block.width  + padding)
