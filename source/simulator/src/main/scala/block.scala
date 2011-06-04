@@ -33,9 +33,10 @@ package simulator.view {
   class Block(var x: Int, var y: Int) {
     import Block._
 
-    private var id = count + 1; count = id
     private var angle = 0
     var leds: Array[Array[Led]] = Array.ofDim(layout(0), layout(1))
+    val id = count + 1
+    count = id
 
     for (i <- 0 until layout(1); j <- 0 until layout(0)) {
       leds(i)(j) = new Led()
@@ -107,7 +108,6 @@ package simulator.view {
       context.stroke(255)
       context.rect(startX - x, startY - y, width, height)
 
-      context.noStroke()
       for (i <- 0 until layout(1); j <- 0 until layout(0)) {
         val offset =  + Led.diameter / 2 + margin
         val x: Int = (j - layout(0) / 2) *

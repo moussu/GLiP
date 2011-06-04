@@ -8,10 +8,11 @@ import java.awt.Rectangle
 import java.io._
 import java.net._
 import simulator.view._
+import scala.concurrent._
 
 package simulator.ether {
 
-  class Server(val pool: Pool) extends Actor {
+  class Server(val pool: Pool, val lock: Lock) extends Actor {
     import Block._
 
     val port    = 4444
@@ -20,18 +21,23 @@ package simulator.ether {
     val socket  = new DatagramSocket(port)
     val packet  = new DatagramPacket(buffer, bufsize)
     var portsToBlocks    = Map[Int, Block]()
-    var blocksToSockets  = Map[Block, DatagramSocket]()
+    var blocksToPorts  = Map[Block, Int]()
 
     println ("UDP server started: localhost:" + port)
 
     def act() = {
       while (true) {
         socket.receive(packet)
+
+        lock.acquire
+
         portsToBlocks.find(e => e._1 == packet.getPort()) match {
           case None => {
             val block = pool.addBlock()
-            portsToBlocks   += ((packet.getPort(), block))
-            blocksToSockets += ((block, new DatagramSocket(packet.getPort)))
+            portsToBlocks += ((packet.getPort(), block))
+            blocksToPorts += ((block, packet.getPort()))
+            println("New client {port:" + packet.getPort() +
+                    ", block:" + block + "}")
           }
           case _ => ()
         }
@@ -46,19 +52,23 @@ package simulator.ether {
             Array.copy(packetData, 2, data, 0, packetData.size - 2)
             pool.send(portsToBlocks(packet.getPort()), ir) match {
               case Some(b) =>
-                blocksToSockets(b).send(new DatagramPacket(data, data.size))
+                socket.send(new DatagramPacket(data, data.size,
+                                               InetAddress.getLocalHost,
+                                               blocksToPorts(b)))
               case None => {}
             }
           }
           case 'l' => {
-            val i = packetData(1)
-            val j = packetData(2)
-            val r = packetData(3)
-            val g = packetData(4)
-            val b = packetData(5)
+            val i = packetData(1) + 128
+            val j = packetData(2) + 128
+            val r = packetData(3) + 128
+            val g = packetData(4) + 128
+            val b = packetData(5) + 128
             portsToBlocks(packet.getPort()).leds(i)(j).setColor(r, g, b)
           }
         }
+
+        lock.release
       }
     }
 

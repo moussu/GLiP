@@ -5,6 +5,7 @@ import scala.util.Random
 import scala.collection.mutable._
 import java.awt.Rectangle
 import simulator.ether._
+import scala.concurrent._
 
 package simulator.view {
 
@@ -141,8 +142,10 @@ package simulator.view {
     }
 
     private var cnt: Int = 0
-    def draw(context: PApplet, detailed: Boolean) = {
+    def draw(context: PApplet, lock: Lock, detailed: Boolean) = {
+      lock.acquire
       model.computeConnections(pool)
+      lock.release
 
       if (detailed)
         model.drawIRs(context)
@@ -150,10 +153,10 @@ package simulator.view {
       model.drawConnections(context)
 
       pool foreach { b =>
-        if (cnt == 0)
+/*        if (cnt == 0)
           b.leds.foreach(row =>
             row.foreach(led =>
-              led.randomColor()))
+              led.randomColor()))*/
         b.draw(context, detailed)
       }
 
