@@ -10,7 +10,7 @@ package simulator.ether {
     type IR      = (Block, Dir)
     type Com     = (IR, IR)
     type ComList = List[Com]
-    type RoutingTable = HashMap[Dir, Block]
+    type RoutingTable = HashMap[Dir, (Block, Dir)]
     type Connections = HashMap[Block, RoutingTable]
   }
 
@@ -33,11 +33,10 @@ package simulator.ether {
         connections(b) = new RoutingTable()
     }
 
-    def send(pool: LinkedList[Block], b: Block, ir: Dir): Option[Block] = {
-      connections(b).find(pair => pair._1 == b) foreach {
-        case (k, dest) => if (k == ir) return Some(dest)
-        case _ => {}
-      }
+    def send(pool: LinkedList[Block], b: Block, ir: Dir): Option[(Block, Dir)] = {
+      connections.get(b) foreach { x => {
+        return x.get(ir)
+      }}
 
       return None
     }
@@ -76,8 +75,8 @@ package simulator.ether {
             val comms = communicates(b1, b2)
             drawList = drawList ++ comms
             for (((b1, d1), (b2, d2)) <- comms) {
-              connections(b1)(d1) = b2
-              connections(b2)(d2) = b1
+              connections(b1)(d1) = (b2, d2)
+              connections(b2)(d2) = (b1, d1)
             }
           }
         }
