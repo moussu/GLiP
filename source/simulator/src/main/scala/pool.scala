@@ -137,10 +137,14 @@ package simulator.view {
       model.send(pool, b, ir)
     }
 
+    def refresh() = {
+      model.computeConnections(pool)
+    }
+
     private var cnt: Int = 0
     def draw(context: PApplet, lock: Lock, detailed: Boolean) = {
       lock.acquire
-      model.computeConnections(pool)
+      refresh
       lock.release
 
       if (detailed)

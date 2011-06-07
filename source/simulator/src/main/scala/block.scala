@@ -7,7 +7,35 @@ package simulator.view {
   object Block {
     object Dir extends Enumeration {
       type Dir = Value
+
       val N, S, E, W = Value
+
+      def fromChar(c: Char): Value = {
+        c match {
+          case 'N' => Dir.N
+          case 'S' => Dir.S
+          case 'E' => Dir.E
+          case 'W' => Dir.W
+        }
+      }
+
+      def fromInt(n: Int): Value = {
+        n match {
+          case 0 => Dir.N
+          case 1 => Dir.S
+          case 2 => Dir.E
+          case 3 => Dir.W
+        }
+      }
+
+      def toInt(d: Value): Int = {
+        d match {
+          case Dir.N => 0
+          case Dir.S => 1
+          case Dir.E => 2
+          case Dir.W => 3
+        }
+      }
     }
 
     type Dir     = Dir.Value
