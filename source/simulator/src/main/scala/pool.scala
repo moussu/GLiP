@@ -99,6 +99,8 @@ package simulator.view {
       }
       else
         newB.move(oldX, oldY)
+      //FIXME: Do not keep this, use functions using x, y args
+      //instead of a block (isRoomFor)
     }
 
     def getBlockAt(x: Int, y: Int): Option[Block] = {
@@ -111,16 +113,39 @@ package simulator.view {
     }
     //FIXME: won't dirty the model as it is used, but could...
 
-    def moveBlock(b: Block, x: Int, y: Int) = {
+    def moveBlock(b: Block, newX: Int, newY: Int) = {
       val oldX: Int = b.x
       val oldY: Int = b.y
 
+      val x = if (math.abs(newX - oldX) < Block.width  / 2)
+          newX
+        else
+          oldX
+
+      val y = if (math.abs(newY - oldY) < Block.width  / 2)
+          newY
+        else
+          oldY
+
       b.move(x, y)
 
+      //FIXME: Common, you can do better...
       if (isRoomFor(b))
         model.declareDirty()
-      else
-        b.move(oldX, oldY)
+      else {
+        b.move(oldX, y)
+        if (isRoomFor(b))
+          model.declareDirty()
+        else {
+          b.move(x, oldY)
+          if (isRoomFor(b))
+            model.declareDirty()
+          else
+            b.move(oldX, oldY)
+        }
+      }
+      //FIXME: Do not keep this, use functions using x, y args
+      //instead of a block (isRoomFor)
     }
 
     def rotateBlock(b: Block) = {
