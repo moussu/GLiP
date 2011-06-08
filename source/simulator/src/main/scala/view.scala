@@ -48,13 +48,10 @@ package simulator.view {
     }
 
     override def mouseDragged() {
-      if (selected != None && pool.getBlockAt(mouseX, mouseY) != selected)
-        selected = None
-      else
-        selected foreach { b =>
-            pool.moveBlock(b, mouseX - offsetX, mouseY - offsetY)
-            redraw()
-        }
+      selected foreach { b => {
+        pool.moveBlock(b, mouseX - offsetX, mouseY - offsetY)
+        redraw()
+      }}
     }
 
     override def mouseReleased() {
