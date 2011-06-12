@@ -1,114 +1,19 @@
 #ifndef ROUTING_H
 # define ROUTING_H
 
-typedef uint8_t  packet_byte_t;
-typedef uint32_t address_t;
-typedef uint8_t  time_t;
-typedef uint16_t seq_num_t;
-typedef void (*message_handler_t)(packet_byte_t* message, int size);
+# include <stdint.h>
+# include <stm32f10x.h>
 
-# define QUEUES_SIZE 32
-
-/* C is a scaling factor for the "validity time" calculation ("Vtime"
-   and "Htime" fields in message headers, see section 18.3).  The
-   "validity time" advertisement is designed such that nodes in a
-   network may have different and individually tuneable emission
-   intervals, while still interoperate fully.  For protocol functioning
-   and interoperability to work:
-
-     -    the advertised holding time MUST always be greater than the
-          refresh interval of the advertised information.  Moreover, it
-          is recommended that the relation between the interval (from
-          section 18.2), and the hold time is kept as specified
-          in section 18.3, to allow for reasonable packet loss.
-
-     -    the constant C SHOULD be set to the suggested value.  In order
-          to achieve interoperability, C MUST be the same on all nodes.
-
-     -    the emission intervals (section 18.2), along with the
-          advertised holding times (subject to the above constraints)
-          MAY be selected on a per node basis.
-
-   Note that the timer resolution of a given implementation might not be
-   sufficient to wake up the system on precise refresh times or on
-   precise expire times: the implementation SHOULD round up the
-   'validity time' ("Vtime" and "Htime" of packets) to compensate for
-   coarser timer resolution, at least in the case where "validity time"
-   could be shorter than the sum of emission interval and maximum
-   expected timer error.*/
-
-# define C_S                (1.0f/16.0f)
-
-// 18.2.  Emission Intervals:
-# define HELLO_INTERVAL_S   (2)
-# define REFRESH_INTERVAL_S (2)
-# define TC_INTERVAL_S      (5)
-# define MID_INTERVAL_S     TC_INTERVAL_S
-# define HNA_INTERVAL_S     TC_INTERVAL_S
-
-// 18.3.  Holding Time:
-# define NEIGHB_HOLD_TIME_S (3 * REFRESH_INTERVAL)
-# define TOP_HOLD_TIME_S    (3 * TC_INTERVAL)
-# define DUP_HOLD_TIME_S    (30)
-# define MID_HOLD_TIME_S    (3 * MID_INTERVAL)
-# define HNA_HOLD_TIME_S    (3 * HNA_INTERVAL)
-
-// 18.9.  Misc. Constants:
-# define TC_REDUNDANCY 0
-# define MPR_COVERAGE  1
-# define MAXJITTER_MS   (1000 * HELLO_INTERVAL_S / 4)
-
-// 18.7.  Link Hysteresis:
-# define HYST_THRESHOLD_HIGH 0.8f
-# define HYST_THRESHOLD_LOW  0.3f
-# define HYST_SCALING        0.5f
-
-//18.4.  Message Types:
-# define MESSAGE_TYPES 4
-
-typedef enum
-{
-  HELLO_MESSAGE = 1,
-  TC_MESSAGE    = 2,
-  MID_MESSAGE   = 3,
-  HNA_MESSAGE   = 4,
-} message_type_t;
-
-// 18.5.  Link Types:
-typedef enum
-{
-  UNSPEC_LINK = 0,
-  ASYM_LINK   = 1,
-  SYM_LINK    = 2,
-  LOST_LINK   = 3,
-} link_type_t;
-
-// 18.6.  Neighbor Types:
-typedef enum
-{
-  NOT_NEIGH = 0,
-  SYM_NEIGH = 1,
-  MPR_NEIGH = 2,
-} neighbor_type_t;
-
-// 18.8.  Willingness:
-typedef enum
-{
-  WILL_NEVER   = 0,
-  WILL_LOW     = 1,
-  WILL_DEFAULT = 3,
-  WILL_HIGH    = 6,
-  WILL_ALWAYS  = 7,
-} willingness_t;
-
-// Interfaces:
-typedef enum
-{
-  NORTH_IFACE = 0,
-  WEST_IFACE  = 1,
-  SOUTH_IFACE = 2,
-  EAST_IFACE  = 3,
-} interface_t;
+# include "olsr_2hop_neighbor_set.h"
+# include "olsr_constants.h"
+# include "olsr_duplicate_set.h"
+# include "olsr_link_set.h"
+# include "olsr_mpr_selector_set.h"
+# include "olsr_mpr_set.h"
+# include "olsr_neighbor_set.h"
+# include "olsr_topology_set.h"
+# include "olsr_types.h"
+# include "routing.h"
 
 /*
        0                   1                   2                   3
@@ -182,7 +87,7 @@ typedef struct
      until the beginning of the next "Message Type" field (or - if
      there are no following messages - until the end of the packet). */
 
-  address_t orig;
+  address_t addr;
   /* This field contains the main address of the node, which has
      originally generated this message.  This field SHOULD NOT be
      confused with the source address from the IP header, which is
@@ -219,31 +124,6 @@ typedef struct
      by any node. */
 } olsr_message_hdr_t;
 
-typedef struct
-{
-  address_t  addr;
-  seq_num_t  sn;
-  time_t     time;
-  enum iface ifaces[4];
-  uint8_t    n_ifaces;
-  bool       retrans;
-} olsr_duplicate_tuple_t;
-
-// FIXME: value set randomly...
-# define DUPLICATE_SET_MAX_SIZE 10
-typedef struct
-{
-  olsr_duplicate_tuple_t tuples[DUPLICATE_SET_MAX_SIZE];
-  uint8_t n_tuples;
-} olsr_duplicate_set_t;
-
-typedef struct
-{
-  message_type_t types_implemented[MESSAGE_TYPES];
-  address_t address;
-  olsr_duplicate_set_t duplicate_set;
-} olsr_node_state_t;
-
 
 # define MAX_MESSAGE_CONTENT_SIZE 1024
 typedef struct
@@ -276,7 +156,32 @@ typedef struct
   uint16_t size;
 } olsr_link_message_hdr_t;
 
+typedef struct
+{
+  message_type_t types_implemented[MESSAGE_TYPES];
+  address_t address;
+  olsr_duplicate_set_t duplicate_set;
+  olsr_link_set_t link_set;
+  olsr_mpr_set_t mpr_set;
+  olsr_mpr_selector_set_t mpr_selector_set;
+  olsr_neighbor_set_t neighbor_set;
+  olsr_2hop_neighbor_set_t twohop_neighbor_set;
+  olsr_topology_set_t topology_set;
+} olsr_node_state_t;
+
+void olsr_init(address_t address);
+void olsr_process_packet(packet_byte_t* packet, int length, interface_t iface);
+void olsr_forward_message(packet_byte_t* message, int size, interface_t iface);
+void olsr_process_message(packet_byte_t* message, int size, interface_t iface);
+void olsr_dispatch_message(packet_byte_t* message, int size, interface_t iface);
+void olsr_default_forward(packet_byte_t* message, int size, interface_t iface);
 void send_message(olsr_message_hdr_t* header, packet_byte_t* content,
                   int content_size);
+void send_task(void* pvParameters);
+
+bool olsr_process_hello_message(packet_byte_t* message, int size, interface_t iface);
+bool olsr_one_hop_symetric_neighbor(address_t addr);
+bool olsr_is_mpr_selector(address_t addr);
+long get_current_time();
 
 #endif
