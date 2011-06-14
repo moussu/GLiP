@@ -8,14 +8,18 @@
 
 MKDIR_P = mkdir -p
 
-CC = ccache arm-none-eabi-gcc
-CFLAGS = -std=c99  -Wall -Werror -fasm -fdata-sections -ffunction-sections \
-	-fno-strict-aliasing \
+CC = ccache gcc
+CFLAGS = -std=c99 -Wall -fmessage-length=0 -pthread \
+	-include signal.h -include pthread.h -include setjmp.h \
+	-include bits/local_lim.h -include bits/sigthread.h \
+	-include bits/sigset.h -include bits/sigaction.h \
+	-include FreeRTOSConfig.h \
 	$(INCCFLAGS) $(ARCHFLAGS) $(OPTFLAGS) $(DEBUGFLAGS)
-INCCFLAGS = -DGCC_ARMCM3 -I. -I$(FREERTOS_INCDIR) -I$(FW_INCDIR) \
-	-I$(STM32_DIR) -I$(FIRMWARE_DIR) $(PROGRAM_MODE)
-ARCHFLAGS = -mcpu=cortex-m3 -mthumb
-OPTFLAGS = -g -O2 -fmerge-all-constants -fsee
+INCCFLAGS = -DGCC_POSIX
+INCCFLAGS +=  -I. -I$(FREERTOS_INCDIR) -I$(FREERTOS_PLATDIR) \
+	-I$(FW_INCDIR) -I$(STM32_DIR) -I$(FIRMWARE_DIR) $(PROGRAM_MODE)
+ARCHFLAGS = -D__GCC_POSIX__=1
+OPTFLAGS = -g -O2
 
 ifeq ($(MODE),flash)
 PROGRAM_MODE=-DPROGRAM_MODE_FLASH
@@ -34,23 +38,20 @@ endif
 STARTUP_OBJECT = startup_stm32f10x_$(DENSITY).o
 LINKER_SCRIPT = stm32f10x_$(MODE)_$(DENSITY).ld
 
-OBJS += $(STARTUP_OBJECT)
+OBJS +=
 
-AS = arm-none-eabi-as
+AS = as
 ASFLAGS = $(ARCHFLAGS)
 
-LD = arm-none-eabi-gcc
-LDFLAGS = -L$(STM32_DIR) -T $(LINKER_SCRIPT) \
-	-Wl,-Map=$(PROGRAM).map \
-	-Wl,--gc-sections \
-	$(ARCHFLAGS)
+LD = gcc
+LDFLAGS = $(ARCHFLAGS) -lrt
 
-OBJCOPY = arm-none-eabi-objcopy
-OBJDUMP = arm-none-eabi-objdump
+OBJCOPY = objcopy
+OBJDUMP = objdump
 
 FREERTOS_DIR = ../Source
 FREERTOS_INCDIR = $(FREERTOS_DIR)/include
-FREERTOS_PLATDIR = $(FREERTOS_DIR)/portable/GCC/ARM_CM3
+FREERTOS_PLATDIR = $(FREERTOS_DIR)/portable/GCC/Posix
 FREERTOS_MEMDIR = $(FREERTOS_DIR)/portable/MemMang
 
 FIRMWARE_DIR = ../firmware
