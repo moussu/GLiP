@@ -3,7 +3,8 @@
 
 # include <stdint.h>
 
-typedef uint8_t time_t;
+typedef long time_t;
+typedef uint8_t time_serialized_t;
 
 /*
    Given one of the above holding times, a way of computing the
@@ -25,12 +26,44 @@ typedef uint8_t time_t;
    (a=14,b=7) and (a=14,b=8) respectively.
  */
 
-inline time_t
-olsr_portable_time(float t_s)
+inline time_serialized_t
+olsr_serialize_time(time_t t)
 {
-  return t_s;
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  return (time_serialized_t)t;
 }
 
-long get_current_time(); // FIXME: implement
+inline time_t
+olsr_deserialize_time(time_serialized_t t)
+{
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  return t;
+}
+
+inline time_t
+olsr_seconds_to_time(float t_s)
+{
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  //FIXME: implement!!!
+  return (time_t)t_s;
+}
+
+time_t olsr_get_current_time(); // FIXME: implement
+// FIXME: comparisons between time_t and get_current_time should be
+// fixed.
 
 #endif

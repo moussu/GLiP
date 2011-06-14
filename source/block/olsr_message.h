@@ -53,7 +53,7 @@ typedef struct
      reserved for messages in this document and in possible
      extensions. */
 
-  time_t Vtime;
+  time_serialized_t Vtime;
   /* This field indicates for how long time after reception a node
      MUST consider the information contained in the message as
      valid, unless a more recent update to the information is
@@ -82,7 +82,7 @@ typedef struct
      which is re-transmitting this message.  The Originator Address
      field MUST *NEVER* be changed in retransmissions. */
 
-  time_t ttl;
+  ttl_t ttl;
   /* This field contains the maximum number of hops a message will
      be transmitted.  Before a message is retransmitted, the Time To
      Live MUST be decremented by 1.  When a node receives a message
