@@ -6,16 +6,12 @@ MODE = flash
 # One of "hd" or "md" or "cl"
 DENSITY = hd
 
-# Object files
-OBJS = routing.o
+# Source files
+SRCS = $(wildcard *.c)
 
+# Object files
+OBJS = $(SRCS:.c=.o)
 
 include ../Makefile.inc
 
 CFLAGS += -DMBLED
-
-
-CFLAGS += -I./inc
-CFLAGS += -I./inc/utils
-
-VPATH += ./src

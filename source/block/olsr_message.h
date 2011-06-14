@@ -1,19 +1,19 @@
-#ifndef ROUTING_H
-# define ROUTING_H
+#ifndef OLSR_MESSAGE_H
+# define OLSR_MESSAGE_H
 
-# include <stdint.h>
-# include <stm32f10x.h>
-
-# include "olsr_2hop_neighbor_set.h"
-# include "olsr_constants.h"
-# include "olsr_duplicate_set.h"
-# include "olsr_link_set.h"
-# include "olsr_mpr_selector_set.h"
-# include "olsr_mpr_set.h"
-# include "olsr_neighbor_set.h"
-# include "olsr_topology_set.h"
+# include "olsr_ifaces.h"
 # include "olsr_types.h"
-# include "routing.h"
+# include "olsr_time.h"
+
+//18.4.  Message Types:
+# define MESSAGE_TYPES 4
+typedef enum
+{
+  HELLO_MESSAGE = 1,
+  TC_MESSAGE    = 2,
+  MID_MESSAGE   = 3,
+  HNA_MESSAGE   = 4,
+} message_type_t;
 
 /*
        0                   1                   2                   3
@@ -47,26 +47,13 @@
 
 typedef struct
 {
-  uint16_t length;
-  /* The length (in bytes) of the packet. */
-
-  seq_num_t sn;
-  /* The Packet Sequence Number (PSN) MUST be incremented by one
-     each time a new OLSR packet is transmitted.  "Wrap-around" is
-     handled as described in section 19.  A separate Packet Sequence
-     Number is maintained for each interface such that packets
-     transmitted over an interface are sequentially enumerated. */
-} olsr_packet_hdr_t;
-
-typedef struct
-{
   message_type_t type;
   /* This field indicates which type of message is to be found in
      the "MESSAGE" part.  Message types in the range of 0-127 are
      reserved for messages in this document and in possible
      extensions. */
 
-  time_t vtime;
+  time_t Vtime;
   /* This field indicates for how long time after reception a node
      MUST consider the information contained in the message as
      valid, unless a more recent update to the information is
@@ -133,55 +120,10 @@ typedef struct
   int content_size;
 } olsr_message_t;
 
-# define MAX_PACKET_MESSAGES 10
-# define MAX_PACKET_CONTENT_SIZE (MAX_PACKET_MESSAGES * 1024)
-typedef struct
-{
-  olsr_packet_hdr_t header;
-  packet_byte_t content[MAX_MESSAGE_CONTENT_SIZE];
-  int content_size;
-} olsr_packet_t;
-
-typedef struct
-{
-  uint16_t reserved;
-  time_t htime;
-  willingness_t willingness;
-} olsr_hello_packet_hdr_t;
-
-typedef struct
-{
-  uint8_t link_code;
-  uint8_t reserved;
-  uint16_t size;
-} olsr_link_message_hdr_t;
-
-typedef struct
-{
-  message_type_t types_implemented[MESSAGE_TYPES];
-  address_t address;
-  olsr_duplicate_set_t duplicate_set;
-  olsr_link_set_t link_set;
-  olsr_mpr_set_t mpr_set;
-  olsr_mpr_selector_set_t mpr_selector_set;
-  olsr_neighbor_set_t neighbor_set;
-  olsr_2hop_neighbor_set_t twohop_neighbor_set;
-  olsr_topology_set_t topology_set;
-} olsr_node_state_t;
-
-void olsr_init(address_t address);
-void olsr_process_packet(packet_byte_t* packet, int length, interface_t iface);
+void olsr_message_append(olsr_message_t* msg, void* data, int size_bytes);
 void olsr_forward_message(packet_byte_t* message, int size, interface_t iface);
 void olsr_process_message(packet_byte_t* message, int size, interface_t iface);
 void olsr_dispatch_message(packet_byte_t* message, int size, interface_t iface);
 void olsr_default_forward(packet_byte_t* message, int size, interface_t iface);
-void send_message(olsr_message_hdr_t* header, packet_byte_t* content,
-                  int content_size);
-void send_task(void* pvParameters);
-
-bool olsr_process_hello_message(packet_byte_t* message, int size, interface_t iface);
-bool olsr_one_hop_symetric_neighbor(address_t addr);
-bool olsr_is_mpr_selector(address_t addr);
-long get_current_time();
 
 #endif
