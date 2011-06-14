@@ -1,6 +1,7 @@
 #ifndef OLSR_2HOP_NEIGHBOR_SET_H
 # define OLSR_2HOP_NEIGHBOR_SET_H
 
+# include "olsr_time.h"
 # include "olsr_types.h"
 
 typedef struct
@@ -17,5 +18,6 @@ typedef struct
   olsr_2hop_neighbor_tuple_t tuples[TWOHOP_NEIGHBOR_SET_MAX_SIZE];
 } olsr_2hop_neighbor_set_t;
 
+void olsr_2hop_neighbor_set_init(olsr_2hop_neighbor_set_t* set);
 
 #endif

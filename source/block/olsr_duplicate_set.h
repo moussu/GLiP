@@ -2,9 +2,11 @@
 #ifndef OLSR_DUPLICATE_SET_H
 # define OLSR_DUPLICATE_SET_H
 
-# include "routing.h"
-# include "olsr_types.h"
+# include <stm32f10x.h>
 # include "olsr_constants.h"
+# include "olsr_ifaces.h"
+# include "olsr_time.h"
+# include "olsr_types.h"
 
 typedef struct
 {
@@ -28,6 +30,7 @@ void olsr_duplicate_tuple_init(olsr_duplicate_tuple_t* t);
 void olsr_duplicate_set_init(olsr_duplicate_set_t* s);
 bool olsr_already_processed(address_t addr, seq_num_t sn);
 bool olsr_already_forwarded(address_t addr, seq_num_t sn, interface_t iface);
-bool olsr_has_to_be_forwarded(address_t addr, seq_num_t sn, interface_t iface, int* n);
+bool olsr_has_to_be_forwarded(address_t addr, seq_num_t sn, interface_t iface,
+                              int* n);
 
 #endif

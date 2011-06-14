@@ -1,4 +1,5 @@
 #include "olsr_duplicate_set.h"
+#include "olsr_state.h"
 
 void
 olsr_duplicate_tuple_init(olsr_duplicate_tuple_t* t)

@@ -41,11 +41,11 @@
 # define HNA_INTERVAL_S     TC_INTERVAL_S
 
 // 18.3.  Holding Time:
-# define NEIGHB_HOLD_TIME_S (3 * REFRESH_INTERVAL)
-# define TOP_HOLD_TIME_S    (3 * TC_INTERVAL)
+# define NEIGHB_HOLD_TIME_S (3 * REFRESH_INTERVAL_S)
+# define TOP_HOLD_TIME_S    (3 * TC_INTERVAL_S)
 # define DUP_HOLD_TIME_S    (30)
-# define MID_HOLD_TIME_S    (3 * MID_INTERVAL)
-# define HNA_HOLD_TIME_S    (3 * HNA_INTERVAL)
+# define MID_HOLD_TIME_S    (3 * MID_INTERVAL_S)
+# define HNA_HOLD_TIME_S    (3 * HNA_INTERVAL_S)
 
 // 18.9.  Misc. Constants:
 # define TC_REDUNDANCY 0
@@ -57,16 +57,6 @@
 # define HYST_THRESHOLD_LOW  0.3f
 # define HYST_SCALING        0.5f
 
-//18.4.  Message Types:
-# define MESSAGE_TYPES 4
-
-typedef enum
-{
-  HELLO_MESSAGE = 1,
-  TC_MESSAGE    = 2,
-  MID_MESSAGE   = 3,
-  HNA_MESSAGE   = 4,
-} message_type_t;
 
 // 18.5.  Link Types:
 typedef enum
@@ -76,6 +66,12 @@ typedef enum
   SYM_LINK    = 2,
   LOST_LINK   = 3,
 } link_type_t;
+
+typedef enum
+{
+  NOT_SYM = 0,
+  SYM     = 1,
+} link_status_t;
 
 // 18.6.  Neighbor Types:
 typedef enum
@@ -94,15 +90,5 @@ typedef enum
   WILL_HIGH    = 6,
   WILL_ALWAYS  = 7,
 } willingness_t;
-
-// Interfaces:
-typedef enum
-{
-  NORTH_IFACE = 0,
-  WEST_IFACE  = 1,
-  SOUTH_IFACE = 2,
-  EAST_IFACE  = 3,
-} interface_t;
-
 
 #endif
