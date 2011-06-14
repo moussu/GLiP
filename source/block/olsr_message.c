@@ -27,7 +27,8 @@ olsr_forward_message(packet_byte_t* message, int size, interface_t iface)
     case MID_MESSAGE:
     case HNA_MESSAGE:
     default:
-      olsr_default_forward(message, size, iface);
+      if (!olsr_already_forwarded(header->addr, header->sn, iface))
+        olsr_default_forward(message, size, iface);
   }
 }
 
@@ -44,6 +45,8 @@ olsr_process_message(packet_byte_t* message, int size, interface_t iface)
     case MID_MESSAGE:
     case HNA_MESSAGE:
     default:
+      if (!olsr_already_processed(header->addr, header->sn))
+        ;
       return;
   }
 }
@@ -62,11 +65,8 @@ olsr_dispatch_message(packet_byte_t* message, int size, interface_t iface)
   if (header->ttl <= 0 || header->addr == state.address)
     return;
 
-  if (!olsr_already_processed(header->addr, header->sn))
-    olsr_process_message(message, size, iface);
-
-  if (!olsr_already_forwarded(header->addr, header->sn, iface))
-    olsr_forward_message(message, size, iface);
+  olsr_process_message(message, size, iface);
+  olsr_forward_message(message, size, iface);
 }
 
 void
@@ -91,7 +91,7 @@ olsr_default_forward(packet_byte_t* message, int size, interface_t iface)
     olsr_duplicate_tuple_t* tuple =
       state.duplicate_set.tuples + position;
 
-    tuple->time = get_current_time() + DUP_HOLD_TIME_S;
+    tuple->time = olsr_get_current_time() + DUP_HOLD_TIME_S;
 
     // Interface has already proven not to belong to ifaces array.
     // It is not possible to have more than 4 interfaces, so no test
@@ -108,7 +108,7 @@ olsr_default_forward(packet_byte_t* message, int size, interface_t iface)
 
     tuple->addr = header->addr;
     tuple->sn = header->sn;
-    tuple->time = get_current_time() + DUP_HOLD_TIME_S;
+    tuple->time = olsr_get_current_time() + DUP_HOLD_TIME_S;
     tuple->ifaces[0] = iface;
     tuple->n_ifaces = 1;
     tuple->retrans = will_be_retransmited;

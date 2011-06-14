@@ -38,13 +38,6 @@
 typedef struct
 {
   uint16_t reserved;
-  time_t htime;
-  willingness_t willingness;
-} olsr_hello_packet_hdr_t;
-
-typedef struct
-{
-  uint16_t reserved;
   time_t Htime;
   willingness_t willingness;
 } olsr_hello_message_hdr_t;
@@ -64,8 +57,20 @@ olsr_link_code(link_type_t lt, neighbor_type_t nt)
   return (nt << 2) | lt;
 }
 
+inline link_type_t
+olsr_link_type(uint8_t link_code)
+{
+  return link_code & 0xf;
+}
+
+inline neighbor_type_t
+olsr_neighbor_type(uint8_t link_code)
+{
+  return (link_code >> 2) & 0xf;
+}
+
 void olsr_hello_task(void* pvParameters);
-bool olsr_process_hello_message(packet_byte_t* message, int size,
+void olsr_process_hello_message(packet_byte_t* message, int size,
                                 interface_t iface);
 
 #endif

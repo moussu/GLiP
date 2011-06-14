@@ -52,7 +52,7 @@ olsr_is_ms(olsr_ms_set_t* set, address_t addr)
   {
     olsr_ms_tuple_t* tuple = set->tuples + i;
 
-    if (tuple->MS_time < get_current_time())
+    if (tuple->MS_time < olsr_get_current_time())
     {
       olsr_ms_set_delete(set, i);
       continue;

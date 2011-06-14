@@ -5,6 +5,8 @@
 #include "olsr_send.h"
 #include "olsr_state.h"
 
+SET_IMPLEMENT(link, LINK_SET_MAX_SIZE)
+
 /*
    For each tuple in the Link Set, where L_local_iface_addr is the
    interface where the HELLO is to be transmitted, and where L_time >=
@@ -50,48 +52,18 @@
                          Neighbor Type = NOT_NEIGH
 */
 
-void
-olsr_link_set_init(olsr_link_set_t* set)
+olsr_link_tuple_t*
+olsr_link_set_has(olsr_link_set_t* set, address_t neighbor_iface_addr)
 {
-  set->max_size = LINK_SET_MAX_SIZE;
-  set->full = FALSE;
-  set->n_tuples = 0;
-  set->first_empty = 0;
-  memset(set->bitmap, 0, sizeof set->bitmap);
-  memset(set->tuples, 0, sizeof set->tuples);
-}
-
-void
-olsr_link_set_insert(olsr_link_set_t* set, olsr_link_tuple_t tuple)
-{
-  if (set->full)
-    return;
-
-  set->tuples[set->first_empty] = tuple;
-
   for (int i = set->first_empty + 1; i < LINK_SET_MAX_SIZE; i++)
   {
     if (olsr_link_set_is_empty(set, i))
-    {
-      set->first_empty = i;
-      break;
-    }
+      continue;
+    olsr_link_tuple_t* t = state.link_set.tuples + i;
+    if (t->L_neighbor_iface_addr == neighbor_iface_addr)
+      return t;
   }
-
-  set->n_tuples++;
-
-  if (set->n_tuples == LINK_SET_MAX_SIZE)
-    set->full = TRUE;
-}
-
-void
-olsr_link_set_delete(olsr_link_set_t* set, int i)
-{
-  olsr_link_set_declare_empty(set, i);
-  set->n_tuples--;
-  set->full = FALSE;
-  if (i < set->first_empty)
-    set->first_empty = i;
+  return NULL;
 }
 
 void
@@ -105,16 +77,21 @@ olsr_send_hello(interface_t iface)
 
   olsr_message_t hello_message;
   hello_message.header.type = HELLO_MESSAGE;
-  hello_message.header.Vtime = olsr_portable_time(NEIGHB_HOLD_TIME_S);
+  hello_message.header.Vtime = olsr_serialize_time(
+    olsr_seconds_to_time(NEIGHB_HOLD_TIME_S)
+    );
   hello_message.header.ttl = 1;
   hello_message.header.size = sizeof(olsr_message_hdr_t);
 
   olsr_hello_message_hdr_t hello_header;
   hello_header.reserved = 0;
-  hello_header.Htime = olsr_portable_time(HELLO_INTERVAL_S);
+  hello_header.Htime = olsr_serialize_time(
+    olsr_seconds_to_time(HELLO_INTERVAL_S)
+    );
   hello_header.willingness = willingness;
 
-  olsr_message_append(&hello_message, &hello_header, sizeof(olsr_hello_message_hdr_t));
+  olsr_message_append(&hello_message, &hello_header,
+                      sizeof(olsr_hello_message_hdr_t));
 
   olsr_link_message_hdr_t link_header;
   link_header.reserved = 0;
@@ -127,7 +104,7 @@ olsr_send_hello(interface_t iface)
 
     olsr_link_tuple_t* t = state.link_set.tuples + i;
 
-    if (t->L_time <= get_current_time())
+    if (t->L_time <= olsr_get_current_time())
     {
       olsr_link_set_delete(&state.link_set, i);
       continue;
@@ -136,9 +113,9 @@ olsr_send_hello(interface_t iface)
     if (t->L_local_iface_addr != iface_address)
       continue;
 
-    if (t->L_SYM_time >= get_current_time())
+    if (t->L_SYM_time >= olsr_get_current_time())
       link_type = SYM_LINK;
-    else if (t->L_ASYM_time >= get_current_time())
+    else if (t->L_ASYM_time >= olsr_get_current_time())
       link_type = ASYM_LINK;
     else
       link_type = LOST_LINK;
