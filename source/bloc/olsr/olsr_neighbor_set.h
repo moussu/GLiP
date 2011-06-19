@@ -4,7 +4,9 @@
 # include <stm32f10x.h>
 # include "olsr_types.h"
 # include "olsr_constants.h"
+# include "set.h"
 
+# define NEIGHBOR_SET_MAX_SIZE 10
 typedef struct
 {
   address_t N_neighbor_main_addr;
@@ -12,15 +14,9 @@ typedef struct
   willingness_t N_willingness;
   bool advertised;
 } olsr_neighbor_tuple_t;
+SET_DECLARE(neighbor, NEIGHBOR_SET_MAX_SIZE)
+SET_DEFAULT_BINDINGS(neighbor)
 
-# define NEIGHBOR_SET_MAX_SIZE 10
-typedef struct
-{
-  int n_tuples;
-  olsr_neighbor_tuple_t tuples[NEIGHBOR_SET_MAX_SIZE];
-} olsr_neighbor_set_t;
-
-void olsr_neighbor_set_init(olsr_neighbor_set_t* set);
 void olsr_neighbor_reset_advertised(olsr_neighbor_set_t* set);
 bool olsr_neighbor_set_advertised(olsr_neighbor_set_t* set, address_t addr,
                                   neighbor_type_t* neighbor_type);
