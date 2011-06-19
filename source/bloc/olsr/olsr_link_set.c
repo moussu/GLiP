@@ -2,6 +2,7 @@
 #include "olsr_hello.h"
 #include "olsr_link_set.h"
 #include "olsr_message.h"
+#include "olsr_neighbor_set.h"
 #include "olsr_send.h"
 #include "olsr_state.h"
 
@@ -59,7 +60,7 @@ olsr_link_set_has(olsr_link_set_t* set, address_t neighbor_iface_addr)
   {
     if (olsr_link_set_is_empty(set, i))
       continue;
-    olsr_link_tuple_t* t = state.link_set.tuples + i;
+    olsr_link_tuple_t* t = set->tuples + i;
     if (t->L_neighbor_iface_addr == neighbor_iface_addr)
       return t;
   }

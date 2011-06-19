@@ -1,21 +1,15 @@
 #include "olsr_message.h"
 #include "olsr_neighbor_set.h"
 #include "olsr_hello.h"
+#include "olsr_state.h"
 
-void
-olsr_neighbor_set_init(olsr_neighbor_set_t* set)
-{
-  set->n_tuples = 0;
-}
+SET_IMPLEMENT(neighbor, NEIGHBOR_SET_MAX_SIZE)
 
 void
 olsr_neighbor_reset_advertised(olsr_neighbor_set_t* set)
 {
-  for (int i = 0; i < set->n_tuples; i++)
-  {
-    olsr_neighbor_tuple_t* tuple = set->tuples + i;
-    tuple->advertised = FALSE;
-  }
+  SET_FOREACH(neighbor, &state.neighbor_set, __tuple,
+              __tuple->advertised = FALSE)
 }
 
 bool
@@ -24,6 +18,9 @@ olsr_neighbor_set_advertised(olsr_neighbor_set_t* set, address_t addr,
 {
   for (int i = 0; i < set->n_tuples; i++)
   {
+    if (olsr_neighbor_set_is_empty(set, i))
+      continue;
+
     olsr_neighbor_tuple_t* tuple = set->tuples + i;
     if (tuple->N_neighbor_main_addr == addr)
     {
@@ -51,6 +48,9 @@ olsr_is_symetric_neighbor(olsr_neighbor_set_t* set, address_t addr)
 {
   for (int i = 0; i < set->n_tuples; i++)
   {
+    if (olsr_neighbor_set_is_empty(set, i))
+      continue;
+
     olsr_neighbor_tuple_t* tuple = set->tuples + i;
     if (tuple->N_neighbor_main_addr == addr)
       return TRUE;
@@ -70,6 +70,9 @@ olsr_advertise_neighbors(olsr_neighbor_set_t* set, olsr_message_t* hello_message
 
   for (int i = 0; i < set->n_tuples; i++)
   {
+    if (olsr_neighbor_set_is_empty(set, i))
+      continue;
+
     olsr_neighbor_tuple_t* tuple = set->tuples + i;
     if (tuple->advertised)
       continue;

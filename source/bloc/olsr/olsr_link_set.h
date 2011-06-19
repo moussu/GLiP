@@ -19,10 +19,10 @@ typedef struct
 } olsr_link_tuple_t;
 
 SET_DECLARE(link, LINK_SET_MAX_SIZE)
+SET_DEFAULT_BINDINGS(link)
 
-olsr_link_tuple_t*
-olsr_link_set_has(olsr_link_set_t* set,
-                  address_t neighbor_iface_addr);
+olsr_link_tuple_t* olsr_link_set_has(olsr_link_set_t* set,
+                                     address_t neighbor_iface_addr);
 void olsr_send_hello(interface_t iface);
 
 #endif
