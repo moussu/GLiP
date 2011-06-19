@@ -69,7 +69,7 @@ olsr_process_hello_message(packet_byte_t* message, int size,
 {
   olsr_message_hdr_t* header = (olsr_message_hdr_t*)message;
   time_t Vtime = olsr_deserialize_time(header->Vtime);
-  olsr_link_tuple_t* tuple = olsr_link_set_has(&state.link_set, header->addr);
+  olsr_link_tuple_t* tuple = olsr_link_set_has(header->addr);
 
   if (tuple == NULL)
   {
@@ -80,7 +80,7 @@ olsr_process_hello_message(packet_byte_t* message, int size,
         .L_SYM_time            = olsr_get_current_time() - 1,
         .L_time                = olsr_get_current_time() + Vtime,
       };
-    tuple = olsr_link_set_insert(&state.link_set, &t);
+    tuple = olsr_link_set_insert(&t);
   }
 
   if (tuple == NULL)

@@ -6,30 +6,34 @@
 SET_IMPLEMENT(neighbor, NEIGHBOR_SET_MAX_SIZE)
 
 void
-olsr_neighbor_reset_advertised(olsr_neighbor_set_t* set)
+olsr_neighbor_tuple_init(olsr_neighbor_tuple_t* tuple)
 {
-  SET_FOREACH(neighbor, &state.neighbor_set, __tuple,
-              __tuple->advertised = FALSE)
+  tuple->N_neighbor_main_addr = 0;
+  tuple->N_status = NOT_NEIGH;
+  tuple->N_willingness = WILL_DEFAULT;
+  tuple->advertised = FALSE;
+}
+
+void
+olsr_neighbor_reset_advertised()
+{
+  FOREACH_NEIGHBOR(tuple,
+                   tuple->advertised = FALSE);
 }
 
 bool
-olsr_neighbor_set_advertised(olsr_neighbor_set_t* set, address_t addr,
+olsr_neighbor_set_advertised(address_t addr,
                              neighbor_type_t* neighbor_type)
 {
-  for (int i = 0; i < set->n_tuples; i++)
-  {
-    if (olsr_neighbor_set_is_empty(set, i))
-      continue;
-
-    olsr_neighbor_tuple_t* tuple = set->tuples + i;
-    if (tuple->N_neighbor_main_addr == addr)
-    {
-      tuple->advertised = TRUE;
-      if (neighbor_type)
-        *neighbor_type = olsr_get_neighbor_type(tuple);
-    }
-  }
-
+  FOREACH_NEIGHBOR(tuple,
+                   if (tuple->N_neighbor_main_addr == addr)
+                   {
+                     tuple->advertised = TRUE;
+                     if (neighbor_type)
+                       *neighbor_type =
+                         olsr_get_neighbor_type(tuple);
+                     return TRUE;
+                   })
   return FALSE;
 }
 
@@ -44,23 +48,18 @@ olsr_get_neighbor_type(olsr_neighbor_tuple_t* tuple)
 }
 
 bool
-olsr_is_symetric_neighbor(olsr_neighbor_set_t* set, address_t addr)
+olsr_is_symetric_neighbor(address_t addr)
 {
-  for (int i = 0; i < set->n_tuples; i++)
-  {
-    if (olsr_neighbor_set_is_empty(set, i))
-      continue;
-
-    olsr_neighbor_tuple_t* tuple = set->tuples + i;
-    if (tuple->N_neighbor_main_addr == addr)
-      return TRUE;
-  }
+  FOREACH_NEIGHBOR(tuple,
+                   if (tuple->N_neighbor_main_addr == addr)
+                     return TRUE
+    )
 
   return FALSE;
 }
 
 void
-olsr_advertise_neighbors(olsr_neighbor_set_t* set, olsr_message_t* hello_message)
+olsr_advertise_neighbors(olsr_message_t* hello_message)
 {
   link_type_t link_type;
   neighbor_type_t neighbor_type;
@@ -68,12 +67,7 @@ olsr_advertise_neighbors(olsr_neighbor_set_t* set, olsr_message_t* hello_message
   link_header.reserved = 0;
   link_header.size = sizeof(olsr_link_message_hdr_t) + sizeof(address_t);
 
-  for (int i = 0; i < set->n_tuples; i++)
-  {
-    if (olsr_neighbor_set_is_empty(set, i))
-      continue;
-
-    olsr_neighbor_tuple_t* tuple = set->tuples + i;
+  FOREACH_NEIGHBOR(tuple,
     if (tuple->advertised)
       continue;
     neighbor_type = olsr_get_neighbor_type(tuple);
@@ -83,5 +77,5 @@ olsr_advertise_neighbors(olsr_neighbor_set_t* set, olsr_message_t* hello_message
                         sizeof(olsr_link_message_hdr_t));
     olsr_message_append(hello_message, &tuple->N_neighbor_main_addr,
                         sizeof(address_t));
-  }
+    )
 }

@@ -6,7 +6,7 @@
 # include "olsr_ifaces.h"
 # include "olsr_time.h"
 # include "olsr_types.h"
-# include "set.h"
+# include "olsr_set.h"
 
 # define LINK_SET_MAX_SIZE 10
 typedef struct
@@ -20,9 +20,12 @@ typedef struct
 
 SET_DECLARE(link, LINK_SET_MAX_SIZE)
 SET_DEFAULT_BINDINGS(link)
+# define FOREACH_LINK(Var, Code)                \
+  SET_FOREACH(link, Var, Code)
 
-olsr_link_tuple_t* olsr_link_set_has(olsr_link_set_t* set,
-                                     address_t neighbor_iface_addr);
+void olsr_link_tuple_init(olsr_link_tuple_t* tuple);
+olsr_link_tuple_t*
+olsr_link_set_has(address_t neighbor_iface_addr);
 void olsr_send_hello(interface_t iface);
 
 #endif
