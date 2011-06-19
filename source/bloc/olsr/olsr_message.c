@@ -1,6 +1,9 @@
 #include <string.h>
 #include "olsr_hello.h"
+#include "olsr_duplicate_set.h"
 #include "olsr_message.h"
+#include "olsr_neighbor_set.h"
+#include "olsr_ms_set.h"
 #include "olsr_send.h"
 #include "olsr_state.h"
 
@@ -77,19 +80,21 @@ olsr_default_forward(packet_byte_t* message, int size, interface_t iface)
 
   int position = -1;
 
-  if (!olsr_is_symetric_neighbor(&state.neighbor_set, header->addr))
+  if (!olsr_is_symetric_neighbor(header->addr))
     return;
 
   if (!olsr_has_to_be_forwarded(header->addr, header->sn, iface, &position))
     return;
 
   bool will_be_retransmited =
-    olsr_is_ms(&state.ms_set, header->addr) && header->ttl > 1;
+    olsr_is_ms(header->addr) && header->ttl > 1;
 
   if (position > -1)
   {
+    // Sure it is not empty slot as position was returned
+    // by olsr_has_to_be_forwarded:
     olsr_duplicate_tuple_t* tuple =
-      state.duplicate_set.tuples + position;
+      duplicate_set.tuples + position;
 
     tuple->time = olsr_get_current_time() + DUP_HOLD_TIME_S;
 
@@ -101,19 +106,19 @@ olsr_default_forward(packet_byte_t* message, int size, interface_t iface)
     if (will_be_retransmited)
       tuple->retrans = TRUE;
   }
-  else if (state.duplicate_set.n_tuples < DUPLICATE_SET_MAX_SIZE)
+  else
   {
-    olsr_duplicate_tuple_t* tuple =
-      state.duplicate_set.tuples + state.duplicate_set.n_tuples;
+    olsr_duplicate_tuple_t tuple =
+      {
+        .addr = header->addr,
+        .sn = header->sn,
+        .time = olsr_get_current_time() + DUP_HOLD_TIME_S,
+        .ifaces[0] = iface,
+        .n_ifaces = 1,
+        .retrans = will_be_retransmited,
+      };
 
-    tuple->addr = header->addr;
-    tuple->sn = header->sn;
-    tuple->time = olsr_get_current_time() + DUP_HOLD_TIME_S;
-    tuple->ifaces[0] = iface;
-    tuple->n_ifaces = 1;
-    tuple->retrans = will_be_retransmited;
-
-    state.duplicate_set.n_tuples++;
+    olsr_duplicate_set_insert(&tuple);
   }
 
   if (!will_be_retransmited)
@@ -123,6 +128,7 @@ olsr_default_forward(packet_byte_t* message, int size, interface_t iface)
   new_header.hops++;
 
   for (int iface = 0; iface < IFACES_COUNT; iface++)
-    olsr_send_message_content(&new_header, message + sizeof(olsr_message_hdr_t),
+    olsr_send_message_content(&new_header,
+                              message + sizeof(olsr_message_hdr_t),
                               size - sizeof(olsr_message_hdr_t), iface);
 }

@@ -3,10 +3,21 @@
 #include "olsr_link_set.h"
 #include "olsr_message.h"
 #include "olsr_neighbor_set.h"
+#include "olsr_mpr_set.h"
 #include "olsr_send.h"
 #include "olsr_state.h"
 
 SET_IMPLEMENT(link, LINK_SET_MAX_SIZE)
+
+void
+olsr_link_tuple_init(olsr_link_tuple_t* tuple)
+{
+  tuple->L_local_iface_addr = 0;
+  tuple->L_neighbor_iface_addr = 0;
+  tuple->L_SYM_time = 0;
+  tuple->L_ASYM_time = 0;
+  tuple->L_time = 0;
+}
 
 /*
    For each tuple in the Link Set, where L_local_iface_addr is the
@@ -54,16 +65,12 @@ SET_IMPLEMENT(link, LINK_SET_MAX_SIZE)
 */
 
 olsr_link_tuple_t*
-olsr_link_set_has(olsr_link_set_t* set, address_t neighbor_iface_addr)
+olsr_link_set_has(address_t neighbor_iface_addr)
 {
-  for (int i = set->first_empty + 1; i < LINK_SET_MAX_SIZE; i++)
-  {
-    if (olsr_link_set_is_empty(set, i))
-      continue;
-    olsr_link_tuple_t* t = set->tuples + i;
+  FOREACH_LINK(t,
     if (t->L_neighbor_iface_addr == neighbor_iface_addr)
-      return t;
-  }
+      return t
+    )
   return NULL;
 }
 
@@ -98,16 +105,10 @@ olsr_send_hello(interface_t iface)
   link_header.reserved = 0;
   link_header.size = sizeof(olsr_link_message_hdr_t) + sizeof(address_t);
 
-  for (int i = 0; i < state.link_set.max_size; i++)
-  {
-    if (olsr_link_set_is_empty(&state.link_set, i))
-      continue;
-
-    olsr_link_tuple_t* t = state.link_set.tuples + i;
-
+  FOREACH_LINK(t,
     if (t->L_time <= olsr_get_current_time())
     {
-      olsr_link_set_delete(&state.link_set, i);
+      olsr_link_set_delete(__i);
       continue;
     }
 
@@ -125,11 +126,11 @@ olsr_send_hello(interface_t iface)
       olsr_iface_to_main_address(t->L_neighbor_iface_addr);
 
     // Mark neighbors as advertised, grab neighbor_type:
-    olsr_neighbor_set_advertised(&state.neighbor_set, neighbor_main_address,
+    olsr_neighbor_set_advertised(neighbor_main_address,
                                  &neighbor_type);
 
     // If is MPR, alter neighbor_type:
-    if (olsr_is_mpr(&state.mpr_set, neighbor_main_address))
+    if (olsr_is_mpr(neighbor_main_address))
       neighbor_type = MPR_NEIGH;
 
     // Here I'm assuming that if the neighbor_main_address is not in
@@ -140,9 +141,10 @@ olsr_send_hello(interface_t iface)
                         sizeof(olsr_link_message_hdr_t));
     olsr_message_append(&hello_message, &t->L_neighbor_iface_addr,
                         sizeof(address_t));
-  }
+    )
 
-  olsr_advertise_neighbors(&state.neighbor_set, &hello_message);
+
+  olsr_advertise_neighbors(&hello_message);
 
   olsr_send_message(&hello_message, iface);
 }

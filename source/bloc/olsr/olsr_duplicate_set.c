@@ -1,6 +1,8 @@
 #include "olsr_duplicate_set.h"
 #include "olsr_state.h"
 
+SET_IMPLEMENT(duplicate, DUPLICATE_SET_MAX_SIZE)
+
 void
 olsr_duplicate_tuple_init(olsr_duplicate_tuple_t* t)
 {
@@ -11,28 +13,18 @@ olsr_duplicate_tuple_init(olsr_duplicate_tuple_t* t)
   t->time     = 0;
 }
 
-void
-olsr_duplicate_set_init(olsr_duplicate_set_t* s)
-{
-  s->n_tuples = 0;
-  for (int i = 0; i < DUPLICATE_SET_MAX_SIZE; i++)
-    olsr_duplicate_tuple_init(s->tuples + i);
-}
-
 bool
 olsr_already_processed(address_t addr, seq_num_t sn)
 {
   bool already_processed = FALSE;
 
-  for (int i = 0; i < state.duplicate_set.n_tuples; i++)
-  {
-    const olsr_duplicate_tuple_t* tuple = state.duplicate_set.tuples + i;
+  FOREACH_DUPLICATE(tuple,
     if (tuple->addr == addr && tuple->sn == sn)
     {
       already_processed = TRUE;
       break;
     }
-  }
+  )
 
   return already_processed;
 }
@@ -42,9 +34,7 @@ olsr_already_forwarded(address_t addr, seq_num_t sn, interface_t iface)
 {
   bool already_forwarded = FALSE;
 
-  for (int i = 0; i < state.duplicate_set.n_tuples; i++)
-  {
-    const olsr_duplicate_tuple_t* tuple = state.duplicate_set.tuples + i;
+  FOREACH_DUPLICATE(tuple,
     if (tuple->addr == addr
         && tuple->sn == sn)
     {
@@ -60,7 +50,7 @@ olsr_already_forwarded(address_t addr, seq_num_t sn, interface_t iface)
       if (already_forwarded)
         break;
     }
-  }
+  )
 
   return already_forwarded;
 }
@@ -69,14 +59,13 @@ bool
 olsr_has_to_be_forwarded(address_t addr, seq_num_t sn, interface_t iface, int* n)
 {
   bool forwarding = TRUE;
-  for (int i = 0; i < state.duplicate_set.n_tuples; i++)
-  {
-    const olsr_duplicate_tuple_t* tuple = state.duplicate_set.tuples + i;
+
+  FOREACH_DUPLICATE(tuple,
     if (tuple->addr == addr
         && tuple->sn == sn)
     {
       if (n)
-        *n = i;
+        *n = __i;
       // FIXME: Is that really correct ?
       //
 
@@ -98,7 +87,7 @@ olsr_has_to_be_forwarded(address_t addr, seq_num_t sn, interface_t iface, int* n
       if (!forwarding)
         break;
     }
-  }
+  )
 
   return forwarding;
 }

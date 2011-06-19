@@ -1,18 +1,20 @@
 #include "olsr_mpr_set.h"
 
+SET_IMPLEMENT(mpr, MPR_SET_MAX_SIZE)
+
 void
-olsr_mpr_set_init(olsr_mpr_set_t* set)
+olsr_mpr_tuple_init(olsr_mpr_tuple_t* tuple)
 {
-  set->n_tuples = 0;
+  tuple->addr = 0;
 }
 
 bool
-olsr_is_mpr(olsr_mpr_set_t* set, address_t address)
+olsr_is_mpr(address_t address)
 {
-  for (int i = 0; i < set->n_tuples; i++)
-  {
-    if (set->tuples[i] == address)
+  FOREACH_MPR(tuple,
+    if (tuple->addr == address)
       return TRUE;
-  }
+    )
+
   return FALSE;
 }
