@@ -144,6 +144,7 @@ olsr_hello_task(void* pvParameters)
     for (int iface = 0; iface < IFACES_COUNT; iface++)
       olsr_send_hello(iface);
 
-    vTaskDelayUntil(&xLastWakeTime, HELLO_INTERVAL_S * 1000);
+    vTaskDelayUntil(&xLastWakeTime,
+                    HELLO_INTERVAL_S * 1000 - MAXJITTER_MS);
   }
 }
