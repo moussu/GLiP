@@ -18,7 +18,7 @@ void
 olsr_neighbor_reset_advertised()
 {
   FOREACH_NEIGHBOR(tuple,
-                   tuple->advertised = FALSE);
+    tuple->advertised = FALSE);
 }
 
 bool
@@ -26,14 +26,15 @@ olsr_neighbor_set_advertised(address_t addr,
                              neighbor_type_t* neighbor_type)
 {
   FOREACH_NEIGHBOR(tuple,
-                   if (tuple->N_neighbor_main_addr == addr)
-                   {
-                     tuple->advertised = TRUE;
-                     if (neighbor_type)
-                       *neighbor_type =
-                         olsr_get_neighbor_type(tuple);
-                     return TRUE;
-                   })
+    if (tuple->N_neighbor_main_addr == addr)
+    {
+      tuple->advertised = TRUE;
+      if (neighbor_type)
+        *neighbor_type =
+          olsr_get_neighbor_type(tuple);
+      return TRUE;
+    });
+
   return FALSE;
 }
 

@@ -4,17 +4,17 @@
 # include <stm32f10x.h>
 # include <string.h>
 
-# define SET_FOREACH__(Name, Code)                                      \
-  for (int __i = Name##_set.first_empty + 1;                            \
-       __i < Name##_set.max_size; ++__i)                                \
-  {                                                                     \
-    Code;                                                               \
+# define SET_FOREACH__(Name, Code)              \
+  for (int __i = Name##_set.first_empty + 1;    \
+       __i < Name##_set.max_size; ++__i)        \
+  {                                             \
+    Code;                                       \
   }
 
-# define SET_FOREACH_(Name, Var, Code)                          \
-  SET_FOREACH__(Name,                                           \
-                olsr_##Name##_tuple_t* Var =                    \
-                Name##_set.tuples + __i;                        \
+# define SET_FOREACH_(Name, Var, Code)          \
+  SET_FOREACH__(Name,                           \
+                olsr_##Name##_tuple_t* Var =    \
+                Name##_set.tuples + __i;        \
                 Code)
 
 # define SET_FOREACH(Name, Var, Code)                   \
@@ -26,14 +26,14 @@
 # define SET_APPLY(Name, Action)                        \
   SET_FOREACH(Name, __tuple, (*(Action))(__tuple))
 
-# define SET_FIND(Name, Cond, RetVar)            \
-  RetVar = NULL;                                 \
-  SET_FOREACH(Name, ___tuple,                    \
-              if ((*(Cond))(__tuple))            \
-              {                                  \
-                RetVar = ___tuple;               \
-                break;                           \
-              }                                  \
+# define SET_FIND(Name, Cond, RetVar)           \
+  RetVar = NULL;                                \
+  SET_FOREACH(Name, ___tuple,                   \
+              if ((*(Cond))(__tuple))           \
+              {                                 \
+                RetVar = ___tuple;              \
+                break;                          \
+              }                                 \
     )
 
 # define SET_EMPTY(Name)                                        \
@@ -76,6 +76,7 @@
   {                                                                     \
     Name##_set.bitmap[i / 8] |= (1 << (i % 8));                         \
   }
+
 
 # define SET_IMPLEMENT(Name, MaxSize)                           \
   olsr_##Name##_set_t Name##_set;                               \
@@ -144,54 +145,70 @@
     return __tuple;                                             \
   }
 
+# define SET_DEFAULT_INIT(Name)                 \
+  inline void                                   \
+  olsr_##Name##_set_init()                      \
+  {                                             \
+    olsr_##Name##_set_init_();                  \
+  }
 
-# define SET_DEFAULT_BINDINGS(Name)                                     \
-  inline void                                                           \
-  olsr_##Name##_set_init()                                              \
-  {                                                                     \
-    olsr_##Name##_set_init_();                                          \
-  }                                                                     \
-                                                                        \
-  inline void                                                           \
-  olsr_##Name##_set_empty()                                             \
-  {                                                                     \
-    olsr_##Name##_set_empty_();                                         \
-  }                                                                     \
-                                                                        \
-  inline olsr_##Name##_tuple_t*                                         \
-  olsr_##Name##_set_insert(const olsr_##Name##_tuple_t* tuple)          \
-  {                                                                     \
-    return olsr_##Name##_set_insert_(tuple);                            \
-  }                                                                     \
-                                                                        \
-  inline void                                                           \
-  olsr_##Name##_set_delete(int i)                                       \
-  {                                                                     \
-    olsr_##Name##_set_delete_(i);                                       \
-  }                                                                     \
-                                                                        \
+# define SET_DEFAULT_EMPTY(Name)                \
+  inline void                                   \
+  olsr_##Name##_set_empty()                     \
+  {                                             \
+    olsr_##Name##_set_empty_();                 \
+  }
+
+# define SET_DEFAULT_INSERT(Name)                               \
+  inline olsr_##Name##_tuple_t*                                 \
+  olsr_##Name##_set_insert(const olsr_##Name##_tuple_t* tuple)  \
+  {                                                             \
+    return olsr_##Name##_set_insert_(tuple);                    \
+  }
+
+# define SET_DEFAULT_DELETE(Name)               \
+  inline void                                   \
+  olsr_##Name##_set_delete(int i)               \
+  {                                             \
+    olsr_##Name##_set_delete_(i);               \
+  }
+
+# define SET_DEFAULT_APPLY(Name)                                \
+  inline void                                                   \
+  olsr_##Name##_set_apply(olsr_##Name##_action_t action)        \
+  {                                                             \
+    olsr_##Name##_set_apply_(action);                           \
+  }
+
+# define SET_DEFAULT_FIND(Name)                                 \
+  inline olsr_##Name##_tuple_t*                                 \
+  olsr_##Name##_set_find(olsr_##Name##_condition_t cond)        \
+  {                                                             \
+    return olsr_##Name##_set_find_(cond);                       \
+  }
+
+# define SET_DEFAULT_IS_EMPTY(Name)                                     \
   inline bool                                                           \
   olsr_##Name##_set_is_empty(int i)                                     \
   {                                                                     \
     return olsr_##Name##_set_is_empty_(i);                              \
-  }                                                                     \
-                                                                        \
+  }
+
+# define SET_DEFAULT_DECLARE_EMPTY(Name)                                \
   inline void                                                           \
   olsr_##Name##_set_declare_empty(int i)                                \
   {                                                                     \
     olsr_##Name##_set_declare_empty_(i);                                \
-  }                                                                     \
-                                                                        \
-  inline void                                                           \
-  olsr_##Name##_set_apply(olsr_##Name##_action_t action)                \
-  {                                                                     \
-    olsr_##Name##_set_apply_(action);                                   \
-  }                                                                     \
-                                                                        \
-  inline olsr_##Name##_tuple_t*                                         \
-  olsr_##Name##_set_find(olsr_##Name##_condition_t cond)                \
-  {                                                                     \
-    return olsr_##Name##_set_find_(cond);                               \
   }
+
+# define SET_DEFAULT_BINDINGS(Name)             \
+  SET_DEFAULT_INIT(Name)                        \
+  SET_DEFAULT_EMPTY(Name)                       \
+  SET_DEFAULT_INSERT(Name)                      \
+  SET_DEFAULT_DELETE(Name)                      \
+  SET_DEFAULT_APPLY(Name)                       \
+  SET_DEFAULT_FIND(Name)                        \
+  SET_DEFAULT_IS_EMPTY(Name)                    \
+  SET_DEFAULT_DECLARE_EMPTY(Name)
 
 #endif

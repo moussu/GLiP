@@ -21,7 +21,7 @@ typedef struct
 
 SET_DECLARE(duplicate, DUPLICATE_SET_MAX_SIZE)
 SET_DEFAULT_BINDINGS(duplicate)
-# define FOREACH_DUPLICATE(Var, Code)           \
+# define FOREACH_DUPLICATE(Var, Code)                   \
   SET_FOREACH(duplicate, Var, Code)
 
 void olsr_duplicate_tuple_init(olsr_duplicate_tuple_t* t);

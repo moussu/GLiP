@@ -65,6 +65,83 @@ olsr_link_tuple_init(olsr_link_tuple_t* tuple)
 */
 
 olsr_link_tuple_t*
+olsr_link_set_insert(const olsr_link_tuple_t* lt)
+{
+  olsr_link_tuple_t* tuple = olsr_link_set_insert_(lt);
+  olsr_link_set_updated(tuple);
+  return tuple;
+}
+
+void olsr_link_set_delete(int i)
+{
+  bool remove_neighbor = TRUE;
+
+  if (olsr_link_set_is_empty(i))
+    return;
+
+  olsr_link_tuple_t* tuple = link_set.tuples + i;
+  address_t main_address =
+    olsr_iface_to_main_address(tuple->L_neighbor_iface_addr);
+
+  FOREACH_LINK(link,
+    if (olsr_iface_to_main_address(link->L_neighbor_iface_addr)
+        == main_address)
+      remove_neighbor = FALSE
+    );
+
+  if (remove_neighbor)
+  {
+    FOREACH_NEIGHBOR(n,
+      if (n->N_neighbor_main_addr == main_address)
+      {
+        olsr_neighbor_set_delete(__i);
+        break;
+      });
+  }
+
+  olsr_link_set_delete_(i);
+}
+
+void
+olsr_link_set_updated(const olsr_link_tuple_t* lt)
+{
+  olsr_neighbor_tuple_t tuple;
+  olsr_neighbor_tuple_init(&tuple);
+
+  olsr_neighbor_tuple_t* nt =
+    olsr_link_set_associated_neighbor(lt);
+
+  if (!nt)
+  {
+    tuple.N_neighbor_main_addr =
+      olsr_iface_to_main_address(lt->L_neighbor_iface_addr);
+    nt = olsr_neighbor_set_insert(&tuple);
+  }
+
+  nt->N_status = NOT_SYM;
+
+  FOREACH_LINK(link,
+    if (olsr_iface_to_main_address(link->L_neighbor_iface_addr)
+        == nt->N_neighbor_main_addr
+        && link->L_SYM_time >= olsr_get_current_time())
+    {
+      nt->N_status = SYM;
+    })
+}
+
+olsr_neighbor_tuple_t*
+olsr_link_set_associated_neighbor(const olsr_link_tuple_t* tuple)
+{
+  FOREACH_NEIGHBOR(t,
+    if (t->N_neighbor_main_addr
+        == olsr_iface_to_main_address(
+          tuple->L_neighbor_iface_addr))
+      return t
+    )
+  return NULL;
+}
+
+olsr_link_tuple_t*
 olsr_link_set_has(address_t neighbor_iface_addr)
 {
   FOREACH_LINK(t,
@@ -106,12 +183,6 @@ olsr_send_hello(interface_t iface)
   link_header.size = sizeof(olsr_link_message_hdr_t) + sizeof(address_t);
 
   FOREACH_LINK(t,
-    if (t->L_time <= olsr_get_current_time())
-    {
-      olsr_link_set_delete(__i);
-      continue;
-    }
-
     if (t->L_local_iface_addr != iface_address)
       continue;
 
