@@ -4,6 +4,7 @@
 # include <stm32f10x.h>
 # include "olsr_types.h"
 # include "olsr_constants.h"
+# include "olsr_message.h"
 # include "olsr_set.h"
 
 # define NEIGHBOR_SET_MAX_SIZE 10
@@ -14,9 +15,10 @@ typedef struct
   willingness_t N_willingness;
   bool advertised;
 } olsr_neighbor_tuple_t;
+
 SET_DECLARE(neighbor, NEIGHBOR_SET_MAX_SIZE)
 SET_DEFAULT_BINDINGS(neighbor)
-# define FOREACH_NEIGHBOR(Var, Code) \
+# define FOREACH_NEIGHBOR(Var, Code)            \
   SET_FOREACH(neighbor, Var, Code)
 
 void olsr_neighbor_tuple_init(olsr_neighbor_tuple_t* tuple);

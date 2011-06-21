@@ -68,8 +68,13 @@ olsr_process_hello_message(packet_byte_t* message, int size,
                            interface_t iface)
 {
   olsr_message_hdr_t* header = (olsr_message_hdr_t*)message;
+  message += sizeof(olsr_message_hdr_t);
   time_t Vtime = olsr_deserialize_time(header->Vtime);
   olsr_link_tuple_t* tuple = olsr_link_set_has(header->addr);
+  bool inserted = FALSE;
+  olsr_hello_message_hdr_t* hello_header =
+    (olsr_hello_message_hdr_t*)message;
+  message += sizeof(olsr_hello_message_hdr_t);
 
   if (tuple == NULL)
   {
@@ -81,17 +86,13 @@ olsr_process_hello_message(packet_byte_t* message, int size,
         .L_time                = olsr_get_current_time() + Vtime,
       };
     tuple = olsr_link_set_insert(&t);
+    inserted = TRUE;
   }
-
-  if (tuple == NULL)
-    return;
 
   tuple->L_ASYM_time = olsr_get_current_time() + Vtime;
 
-  packet_byte_t* cursor = (packet_byte_t*)message
-    + sizeof(olsr_message_hdr_t);
-
-  packet_byte_t* end = (packet_byte_t*)message +  header->size;
+  packet_byte_t* cursor = (packet_byte_t*)message;
+  packet_byte_t* end = (packet_byte_t*)header + header->size;
 
   while (cursor < end)
   {
@@ -132,6 +133,13 @@ olsr_process_hello_message(packet_byte_t* message, int size,
   }
 
   tuple->L_time = MAX(tuple->L_time, tuple->L_ASYM_time);
+
+  if (!inserted)
+    olsr_link_set_updated(tuple);
+
+  FOREACH_NEIGHBOR(neighbor,
+    if (neighbor->N_neighbor_main_addr == header->addr)
+      neighbor->N_willingness = hello_header->willingness)
 }
 
 void
