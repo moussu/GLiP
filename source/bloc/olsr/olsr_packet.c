@@ -22,7 +22,7 @@ olsr_process_packet(packet_byte_t* packet, int length, interface_t iface)
   do
   {
     olsr_dispatch_message((packet_byte_t*)message_header,
-                        message_header->size, iface);
+                          message_header->size, iface);
     message_header += message_header->size;
   } while ((packet_byte_t*)message_header <
            (packet_byte_t*)packet_header + packet_header->length);

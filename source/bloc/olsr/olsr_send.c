@@ -9,13 +9,18 @@
 #include "olsr_packet.h"
 
 static xQueueHandle send_queues[IFACES_COUNT];
+static void olsr_send_task(void* pvParameters);
 
 void
 olsr_send_init()
 {
   for (int iface = 0; iface < IFACES_COUNT; iface++)
-    send_queues[iface]    = xQueueCreate(QUEUES_SIZE,
-                                         sizeof(olsr_message_t));
+    send_queues[iface] = xQueueCreate(QUEUES_SIZE,
+                                      sizeof(olsr_message_t));
+  xTaskCreate(olsr_send_task,
+              (signed portCHAR*) "sendTask",
+              configMINIMAL_STACK_SIZE, NULL,
+              tskIDLE_PRIORITY, NULL);
 }
 
 void
@@ -46,7 +51,7 @@ olsr_send_message(olsr_message_t* message, interface_t iface)
   xQueueSend(send_queues[iface], &message, portMAX_DELAY);
 }
 
-void
+static void
 olsr_send_task(void* pvParameters)
 {
   static int current_message_sn = 0;

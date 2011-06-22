@@ -14,6 +14,7 @@
 #include "olsr_mpr_set.h"
 #include "olsr_neighbor_set.h"
 #include "olsr_topology_set.h"
+#include "olsr_receive.h"
 #include "olsr_send.h"
 #include "olsr_hello.h"
 
@@ -29,17 +30,14 @@ olsr_init(address_t uid)
   olsr_neighbor_set_init();
   olsr_neighbor2_set_init();
   olsr_topology_set_init();
-  olsr_send_init();
 
   for (int iface = 0; iface < IFACES_COUNT; iface++)
     state.iface_addresses[iface] =
       olsr_get_interface_address(uid, iface);
 
+  olsr_send_init();
+  olsr_receive_init();
   olsr_hello_init();
-
-  xTaskCreate(olsr_send_task, (signed portCHAR*)"SendTask",
-              configMINIMAL_STACK_SIZE, NULL,
-              tskIDLE_PRIORITY, NULL);
 }
 
 
