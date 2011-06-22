@@ -102,7 +102,6 @@ olsr_advertise_neighbors(olsr_message_t* hello_message)
   link_type_t link_type;
   neighbor_type_t neighbor_type;
   olsr_link_message_hdr_t link_header;
-  link_header.reserved = 0;
   link_header.size = sizeof(olsr_link_message_hdr_t) + sizeof(address_t);
 
   FOREACH_NEIGHBOR(tuple,

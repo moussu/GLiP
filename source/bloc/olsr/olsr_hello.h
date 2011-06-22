@@ -37,7 +37,6 @@
 
 typedef struct
 {
-  uint16_t reserved;
   time_t Htime;
   willingness_t willingness;
 } olsr_hello_message_hdr_t;
@@ -45,7 +44,6 @@ typedef struct
 typedef struct
 {
   uint8_t link_code;
-  uint8_t reserved;
   uint16_t size;
 } olsr_link_message_hdr_t;
 
