@@ -91,7 +91,7 @@ olsr_process_hello_message(packet_byte_t* message, int size,
 {
   olsr_message_hdr_t* header = (olsr_message_hdr_t*)message;
   message += sizeof(olsr_message_hdr_t);
-  time_t Vtime = olsr_deserialize_time(header->Vtime);
+  olsr_time_t Vtime = olsr_deserialize_time(header->Vtime);
   olsr_link_tuple_t* tuple = olsr_link_set_has(header->addr);
   bool inserted = FALSE;
   olsr_hello_message_hdr_t* hello_header =

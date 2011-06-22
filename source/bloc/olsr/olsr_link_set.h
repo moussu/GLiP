@@ -14,9 +14,9 @@ typedef struct
 {
   address_t L_local_iface_addr;
   address_t L_neighbor_iface_addr;
-  time_t L_SYM_time;
-  time_t L_ASYM_time;
-  time_t L_time;
+  olsr_time_t L_SYM_time;
+  olsr_time_t L_ASYM_time;
+  olsr_time_t L_time;
 } olsr_link_tuple_t;
 
 SET_DECLARE(link, LINK_SET_MAX_SIZE)
