@@ -47,14 +47,20 @@
 #include <semphr.h>
 #include <croutine.h>
 
-#include "olsr.h"
+#include "olsr/olsr.h"
+#include "comm/simulator.h"
 
-int main ()
+int main (int argc, char** argv)
 {
+  const int id = simulator_init(atoi(argv[1]));
+  const address_t main_address = id << 2;
+  olsr_init(main_address);
 
   // Start scheduler and tasks
   vTaskStartScheduler();
-  for(;;);
+
+  for(;;)
+  {}
 
   return 0;
 }
@@ -63,12 +69,13 @@ void vApplicationStackOverflowHook( void )
 {
   /* This will get called if an overflow is detected in the stack of a task.
      Inspect pxCurrentTCB to see which was the offending task. */
-  for( ;; );
+  for( ;; )
+  {}
 }
 
 void vMainQueueSendPassed( void )
-{}
-
+{
+}
 
 void vApplicationIdleHook( void )
 {

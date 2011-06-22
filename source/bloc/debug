@@ -1,0 +1,41 @@
+#! /bin/sh
+
+pwd=$PWD
+#file=$pwd/simulator.pid
+
+if [ $(dirname $0) != "." ]; then
+    cd $(dirname $0)
+fi
+
+#if [ -f $file ]; then
+#    kill -9 $(cat $file) 2>&1 > /dev/null
+#    rm $file
+#fi
+
+cd ../simulator
+sbt run > /dev/null&
+#echo $! > $file
+cd $pwd
+
+sleep 5s
+
+for port in $(seq 6544 6547); do
+    kill -9 $(lsof -i udp:$port | tail -n1 | awk '{print $2}')
+    xterm -rv -e "gdb --args main $port"&
+done
+
+finish()
+{
+    cd $pwd
+    killall -q java
+    killall -q xterm
+    exit 0
+}
+
+trap "finish" SIGINT SIGTERM
+
+while [ 1 ]; do
+    sleep 1h
+done
+
+exit 0
