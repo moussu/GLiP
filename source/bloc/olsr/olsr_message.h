@@ -113,6 +113,9 @@ typedef struct
 
 
 # define MAX_MESSAGE_CONTENT_SIZE 1024
+# define MAX_MESSAGE_SIZE                                       \
+  (MAX_MESSAGE_CONTENT_SIZE + sizeof(olsr_message_hdr_t))
+
 typedef struct
 {
   olsr_message_hdr_t header;

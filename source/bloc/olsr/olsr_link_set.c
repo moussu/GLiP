@@ -261,8 +261,7 @@ olsr_send_hello(interface_t iface)
   olsr_hello_message_hdr_t hello_header;
   hello_header.reserved = 0;
   hello_header.Htime = olsr_serialize_time(
-    olsr_seconds_to_time(HELLO_INTERVAL_S)
-    );
+    olsr_seconds_to_time(HELLO_INTERVAL_S));
   hello_header.willingness = willingness;
 
   olsr_message_append(&hello_message, &hello_header,

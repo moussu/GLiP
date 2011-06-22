@@ -49,7 +49,11 @@ typedef struct
 } olsr_packet_hdr_t;
 
 # define MAX_PACKET_MESSAGES 10
-# define MAX_PACKET_CONTENT_SIZE (MAX_PACKET_MESSAGES * 1024)
+# define MAX_PACKET_CONTENT_SIZE                        \
+  (MAX_PACKET_MESSAGES * MAX_MESSAGE_CONTENT_SIZE)
+# define MAX_PACKET_SIZE                                \
+  (MAX_PACKET_CONTENT_SIZE + sizeof(olsr_packet_hdr_t))
+
 typedef struct
 {
   olsr_packet_hdr_t header;
