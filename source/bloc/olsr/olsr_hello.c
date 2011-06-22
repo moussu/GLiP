@@ -10,6 +10,26 @@
 #include "olsr_state.h"
 #include "olsr_time.h"
 
+/*static xSemaphoreHandle hello_mutex;
+  static bool force_send = FALSE;*/
+static void olsr_hello_task1(void* pvParameters);
+//static void olsr_hello_task2(void* pvParameters);
+
+
+void
+olsr_hello_init()
+{
+  //hello_mutex = xSemaphoreCreateMutex();
+  xTaskCreate(olsr_hello_task1,
+              (signed portCHAR*) "helloTask1",
+              configMINIMAL_STACK_SIZE, NULL,
+              tskIDLE_PRIORITY, NULL);
+  /*xTaskCreate(olsr_hello_task2,
+    (signed portCHAR*) "helloTask2",
+    configMINIMAL_STACK_SIZE, NULL,
+    tskIDLE_PRIORITY, NULL);*/
+}
+
 /*
   Upon receiving a HELLO message, the "validity time" MUST be computed
   from the Vtime field of the message header (see section 3.3.2).
@@ -245,17 +265,53 @@ olsr_process_hello_message(packet_byte_t* message, int size,
   }
 }
 
+static void
+olsr_hello_send_ifaces()
+{
+  for (int iface = 0; iface < IFACES_COUNT; iface++)
+    olsr_send_hello(iface);
+  //force_send = FALSE;
+}
+
 void
-olsr_hello_task(void* pvParameters)
+olsr_hello_force_send()
+{
+  // FIXME: implement.
+  //force_send = TRUE;
+}
+
+static void
+olsr_hello_task1(void* pvParameters)
 {
   portTickType xLastWakeTime = xTaskGetTickCount();
 
   for (;;)
   {
-    for (int iface = 0; iface < IFACES_COUNT; iface++)
-      olsr_send_hello(iface);
+    //xSemaphoreTake(hello_mutex, portMAX_DELAY);
+
+    olsr_hello_send_ifaces();
+
+    //xSemaphoreGive(hello_mutex);
 
     vTaskDelayUntil(&xLastWakeTime,
                     HELLO_INTERVAL_S * 1000 - MAXJITTER_MS);
   }
 }
+
+/*static void
+olsr_hello_task2(void* pvParameters)
+{
+  portTickType xLastWakeTime = xTaskGetTickCount();
+
+  for (;;)
+  {
+    xSemaphoreTake(hello_mutex, portMAX_DELAY);
+
+    if (force_send)
+      olsr_hello_send_ifaces();
+
+    xSemaphoreGive(hello_mutex);
+
+    vTaskDelayUntil(&xLastWakeTime, 100);
+  }
+  }*/

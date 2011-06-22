@@ -3,6 +3,10 @@
 
 # include <stm32f10x.h>
 # include <string.h>
+# include <FreeRTOS.h>
+# include <semphr.h>
+# include <task.h>
+# include "olsr_time.h"
 
 # define SET_FOREACH___(Name, Code)                     \
   for (int __i_##Name = Name##_set.first_empty + 1;     \
@@ -61,6 +65,7 @@
     uint8_t bitmap[MaxSize / 8];                                        \
     olsr_##Tuple##_tuple_t tuples[MaxSize];                             \
   } olsr_##Name##_set_t;                                                \
+                                                                        \
   extern olsr_##Name##_set_t Name##_set;                                \
                                                                         \
   void olsr_##Name##_set_init_();                                       \
@@ -75,9 +80,7 @@
   inline bool                                                           \
   olsr_##Name##_set_is_empty_(int i)                                    \
   {                                                                     \
-    if (Name##_set.bitmap[i / 8] & (1 << (i % 8)))                      \
-      return TRUE;                                                      \
-    return FALSE;                                                       \
+    return Name##_set.bitmap[i / 8] & (1 << (i % 8));                   \
   }                                                                     \
                                                                         \
   inline void                                                           \
@@ -89,7 +92,7 @@
 # define SET_DECLARE(Name, MaxSize)             \
   SET_DECLARE_(Name, Name, MaxSize)
 
-# define SET_IMPLEMENT_(Name, Tuple, MaxSize)                           \
+# define SET_IMPLEMENT_(Name, Tuple, MaxSize, ...)                      \
   olsr_##Name##_set_t Name##_set;                                       \
                                                                         \
   void                                                                  \
@@ -102,6 +105,7 @@
     memset(Name##_set.bitmap, 0, sizeof Name##_set.bitmap);             \
     memset(Name##_set.tuples, 0, sizeof Name##_set.tuples);             \
     SET_FOREACH_(Name, Tuple, tuple, olsr_##Tuple##_tuple_init(tuple)); \
+    __VA_ARGS__                                                         \
   }                                                                     \
                                                                         \
   void olsr_##Name##_set_empty_()                                       \
@@ -157,8 +161,8 @@
     return __tuple;                                                     \
   }
 
-# define SET_IMPLEMENT(Name, MaxSize)           \
-  SET_IMPLEMENT_(Name, Name, MaxSize)
+# define SET_IMPLEMENT(Name, MaxSize, ...)      \
+  SET_IMPLEMENT_(Name, Name, MaxSize, __VA_ARGS__)
 
 # define SET_DEFAULT_INIT(Name)                 \
   inline void                                   \
@@ -225,5 +229,54 @@
   SET_DEFAULT_FIND(Name)                        \
   SET_DEFAULT_IS_EMPTY(Name)                    \
   SET_DEFAULT_DECLARE_EMPTY(Name)
+
+# define SET_REFRESH_TIME_MS 100
+
+# define SET_SYNCHRO_DECLARE(Name)                                      \
+  extern xSemaphoreHandle olsr_##Name##_set_mutex;                      \
+  void olsr_##Name##_set_task(void* pvParameters);
+
+# define SET_SYNCHRO_INIT(Name)                                         \
+  olsr_##Name##_set_mutex = xSemaphoreCreateMutex();                    \
+  xTaskCreate(olsr_##Name##_set_task,                                   \
+              (signed portCHAR*) #Name "setTask",                       \
+              configMINIMAL_STACK_SIZE, NULL,                           \
+              tskIDLE_PRIORITY, NULL);
+
+# define SET_SYNCHRO_IMPLEMENT(Name, MaxSize)           \
+  xSemaphoreHandle olsr_##Name##_set_mutex;             \
+  SET_IMPLEMENT(Name, MaxSize, SET_SYNCHRO_INIT(Name))
+
+# define SET_MUTEX_TAKE(Name)                                   \
+  xSemaphoreTake(olsr_##Name##_set_mutex, portMAX_DELAY)
+
+# define SET_MUTEX_GIVE(Name)                   \
+  xSemaphoreGive(olsr_##Name##_set_mutex)
+
+# define SET_SYNCHRO_DEFAULT_TASK(Name, TimeField)                      \
+  void olsr_##Name##_set_task(void* pvParameters)                       \
+  {                                                                     \
+    portTickType xLastWakeTime;                                         \
+    for (;;)                                                            \
+    {                                                                   \
+      vTaskDelayUntil(&xLastWakeTime, SET_REFRESH_TIME_MS);             \
+                                                                        \
+      if (Name##_set.n_tuples == 0)                                     \
+        continue;                                                       \
+                                                                        \
+      SET_MUTEX_TAKE(Name);                                             \
+                                                                        \
+      SET_FOREACH(Name, Name,                                           \
+                  if (Name->TimeField >= olsr_get_current_time())       \
+                    olsr_##Name##_set_delete(__i_##Name));              \
+                                                                        \
+      SET_MUTEX_GIVE(Name);                                             \
+                                                                        \
+    }                                                                   \
+  }
+
+# define SET_SYNCHRO_DEFAULT_IMPLEMENT(Name, MaxSize, TimeField)        \
+  SET_SYNCHRO_IMPLEMENT(Name, MaxSize)                                  \
+  SET_SYNCHRO_DEFAULT_TASK(Name, TimeField)
 
 #endif

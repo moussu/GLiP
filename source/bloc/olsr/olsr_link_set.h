@@ -20,6 +20,7 @@ typedef struct
 } olsr_link_tuple_t;
 
 SET_DECLARE(link, LINK_SET_MAX_SIZE)
+SET_SYNCHRO_DECLARE(link)
 SET_DEFAULT_INIT(link)
 SET_DEFAULT_EMPTY(link)
 SET_DEFAULT_IS_EMPTY(link)
@@ -28,13 +29,7 @@ SET_DEFAULT_APPLY(link)
 SET_DEFAULT_FIND(link)
 
 # define FOREACH_LINK(Var, Code)                                \
-  SET_FOREACH(link, Var,                                        \
-              if (Var->L_time <= olsr_get_current_time())       \
-              {                                                 \
-                olsr_link_set_delete(__i_link);                 \
-                continue;                                       \
-              }                                                 \
-              Code)
+  SET_FOREACH(link, Var, Code)
 
 void olsr_link_tuple_init(olsr_link_tuple_t* tuple);
 olsr_link_tuple_t* olsr_link_set_has(address_t neighbor_iface_addr);
@@ -44,7 +39,7 @@ olsr_link_tuple_t* olsr_link_set_insert(const olsr_link_tuple_t* tuple);
 void olsr_link_set_delete(int i);
 void olsr_link_set_updated(const olsr_link_tuple_t* tuple);
 olsr_neighbor_tuple_t*
-olsr_link_set_associated_neighbor(const olsr_link_tuple_t* tuple);
+olsr_link_set_associated_neighbor(const olsr_link_tuple_t* tuple, int* pos);
 bool olsr_is_iface_neighbor(address_t iface_address,
                             address_t neighbor_main_address);
 
