@@ -32,12 +32,21 @@ package simulator.ether {
 
         packetCmd match {
           case 'p' => {
-            val answerPort = new String(packetData.tail).toInt
+            val answerPort = new String(packetData).toInt
             val block = pool.addBlock()
-            portsToBlocks = portsToBlocks.updated(packet.getPort, block)
-            blocksToPorts = blocksToPorts.updated(block, answerPort)
+            val msg = "p" + block.id.toString
+
             println("New client {port:" + answerPort +
                     ", block:" + block + "}")
+
+            portsToBlocks = portsToBlocks.updated(packet.getPort, block)
+            blocksToPorts = blocksToPorts.updated(block, answerPort)
+
+            println("Sending: " + msg);
+
+            socket.send(new DatagramPacket(msg.getBytes, msg.size,
+                                           InetAddress.getLocalHost,
+                                           answerPort))
             lock.release
             pool.refresh
           }

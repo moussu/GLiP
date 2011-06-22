@@ -14,14 +14,11 @@ OBJS = $(notdir $(SRCS:.c=.o)) tasks.o queue.o port.o list.o heap_3.o croutine.o
 
 include ../Makefile.inc
 
-CFLAGS += -DMBLED
+CFLAGS += -DMBLED -DDEBUG
 
-DIRS = fakehardware olsr utils watchdog
+DIRS = fakehardware olsr utils watchdog comm
 
 CFLAGS += $(addprefix -I,$(DIRS))
 VPATH += $(DIRS) $(FREERTOS_DIR)
 
 LDFLAGS += -lpthread
-
-toto:
-	@echo $(OBJS)

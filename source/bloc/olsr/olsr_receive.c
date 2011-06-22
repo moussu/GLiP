@@ -5,6 +5,7 @@
 #include "olsr_constants.h"
 #include "olsr_receive.h"
 #include "olsr_packet.h"
+#include "comm/simulator.h"
 
 static xQueueHandle receive_queues[IFACES_COUNT];
 static void olsr_receive_task(void* pvParameters);
@@ -27,14 +28,12 @@ static void
 olsr_receive_task(void* pvParameters)
 {
   packet_byte_t packet[MAX_PACKET_SIZE] = {0};
-  int length = 0;
+  interface_t iface;
+  int length;
 
   for (;;)
   {
-    for (int iface = 0; iface < IFACES_COUNT; iface++)
-    {
-      //FIXME: RECEIVE PACKET FROM IFACE USING DATA LINK LAYER
-      olsr_process_packet(packet, length, iface);
-    }
+    length = simulator_receive((char*)packet, MAX_PACKET_SIZE, &iface);
+    olsr_process_packet(packet, length, iface);
   }
 }

@@ -13,7 +13,8 @@ typedef enum
 } interface_t;
 
 inline address_t
-olsr_get_interface_address(address_t main_address, interface_t iface)
+olsr_get_interface_address(address_t main_address,
+                           interface_t iface)
 {
   return (main_address << 2) | iface;
 }
