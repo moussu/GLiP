@@ -31,7 +31,7 @@ SET_DEFAULT_FIND(link)
   SET_FOREACH(link, Var,                                        \
               if (Var->L_time <= olsr_get_current_time())       \
               {                                                 \
-                olsr_link_set_delete(__i);                      \
+                olsr_link_set_delete(__i_link);                 \
                 continue;                                       \
               }                                                 \
               Code)
@@ -45,5 +45,7 @@ void olsr_link_set_delete(int i);
 void olsr_link_set_updated(const olsr_link_tuple_t* tuple);
 olsr_neighbor_tuple_t*
 olsr_link_set_associated_neighbor(const olsr_link_tuple_t* tuple);
+bool olsr_is_iface_neighbor(address_t iface_address,
+                            address_t neighbor_main_address);
 
 #endif

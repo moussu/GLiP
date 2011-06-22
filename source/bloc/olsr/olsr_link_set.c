@@ -86,15 +86,14 @@ void olsr_link_set_delete(int i)
   FOREACH_LINK(link,
     if (olsr_iface_to_main_address(link->L_neighbor_iface_addr)
         == main_address)
-      remove_neighbor = FALSE
-    );
+      remove_neighbor = FALSE);
 
   if (remove_neighbor)
   {
     FOREACH_NEIGHBOR(n,
       if (n->N_neighbor_main_addr == main_address)
       {
-        olsr_neighbor_set_delete(__i);
+        olsr_neighbor_set_delete(__i_neighbor);
         break;
       });
   }
@@ -218,4 +217,17 @@ olsr_send_hello(interface_t iface)
   olsr_advertise_neighbors(&hello_message);
 
   olsr_send_message(&hello_message, iface);
+}
+
+bool
+olsr_is_iface_neighbor(address_t iface_address,
+                       address_t neighbor_main_address)
+{
+  FOREACH_LINK(link,
+    if (link->L_local_iface_addr == iface_address
+        && neighbor_main_address
+        == olsr_iface_to_main_address(link->L_neighbor_iface_addr))
+      return TRUE);
+
+  return FALSE;
 }

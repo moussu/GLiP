@@ -5,6 +5,8 @@
 #include "olsr_message.h"
 #include "olsr_constants.h"
 #include "olsr_link_set.h"
+#include "olsr_neighbor2_set.h"
+#include "olsr_ms_set.h"
 #include "olsr_state.h"
 #include "olsr_time.h"
 
@@ -76,6 +78,10 @@ olsr_process_hello_message(packet_byte_t* message, int size,
     (olsr_hello_message_hdr_t*)message;
   message += sizeof(olsr_hello_message_hdr_t);
 
+  // FIXME: Handle validity time.
+
+  // Link set:
+
   if (tuple == NULL)
   {
     olsr_link_tuple_t t =
@@ -91,55 +97,152 @@ olsr_process_hello_message(packet_byte_t* message, int size,
 
   tuple->L_ASYM_time = olsr_get_current_time() + Vtime;
 
-  packet_byte_t* cursor = (packet_byte_t*)message;
-  packet_byte_t* end = (packet_byte_t*)header + header->size;
-
-  while (cursor < end)
   {
-    olsr_link_message_hdr_t* link_header =
-      (olsr_link_message_hdr_t*)cursor;
+    packet_byte_t* cursor = (packet_byte_t*)message;
+    packet_byte_t* end = (packet_byte_t*)header + header->size;
 
-    packet_byte_t* link_content =
-      (packet_byte_t*)link_header
-      + sizeof(olsr_link_message_hdr_t);
-
-    bool breaked = FALSE;
-
-    for (int i = 0; i < link_header->size; i += sizeof(address_t))
+    while (cursor < end)
     {
-      address_t addr = *(address_t*)(link_content + i);
-      if (addr == state.iface_addresses[iface])
+      olsr_link_message_hdr_t* link_header =
+        (olsr_link_message_hdr_t*)cursor;
+
+      packet_byte_t* link_content =
+        (packet_byte_t*)link_header
+        + sizeof(olsr_link_message_hdr_t);
+
+      bool breaked = FALSE;
+
+      for (int i = 0; i < link_header->size; i += sizeof(address_t))
       {
-        link_type_t lt = olsr_link_type(link_header->link_code);
-
-        if (lt == LOST_LINK)
-          tuple->L_SYM_time = olsr_get_current_time() - 1;
-        else // SYM_LINK or ASYM_LINK
+        address_t addr = *(address_t*)(link_content + i);
+        if (addr == state.iface_addresses[iface])
         {
-          tuple->L_SYM_time = olsr_get_current_time() + Vtime;
-          tuple->L_time = tuple->L_SYM_time
-            + olsr_seconds_to_time(NEIGHB_HOLD_TIME_S);
-        }
+          link_type_t lt = olsr_link_type(link_header->link_code);
 
-        breaked = TRUE;
-        break;
+          if (lt == LOST_LINK)
+            tuple->L_SYM_time = olsr_get_current_time() - 1;
+          else // SYM_LINK or ASYM_LINK
+          {
+            tuple->L_SYM_time = olsr_get_current_time() + Vtime;
+            tuple->L_time = tuple->L_SYM_time
+              + olsr_seconds_to_time(NEIGHB_HOLD_TIME_S);
+          }
+
+          breaked = TRUE;
+          break;
+        }
       }
+
+      if (breaked)
+        break;
+
+      cursor += link_header->size;
     }
 
-    if (breaked)
-      break;
+    tuple->L_time = MAX(tuple->L_time, tuple->L_ASYM_time);
 
-    cursor += link_header->size;
+    if (!inserted)
+      olsr_link_set_updated(tuple);
   }
 
-  tuple->L_time = MAX(tuple->L_time, tuple->L_ASYM_time);
-
-  if (!inserted)
-    olsr_link_set_updated(tuple);
+  // Neighbor set:
 
   FOREACH_NEIGHBOR(neighbor,
     if (neighbor->N_neighbor_main_addr == header->addr)
-      neighbor->N_willingness = hello_header->willingness)
+      neighbor->N_willingness = hello_header->willingness);
+
+  // 2-hop neighbor set:
+  if (olsr_is_symetric_neighbor(header->addr))
+  {
+    packet_byte_t* cursor = (packet_byte_t*)message;
+    packet_byte_t* end = (packet_byte_t*)header + header->size;
+
+    while (cursor < end)
+    {
+      olsr_link_message_hdr_t* link_header =
+        (olsr_link_message_hdr_t*)cursor;
+
+      packet_byte_t* link_content =
+        (packet_byte_t*)link_header
+        + sizeof(olsr_link_message_hdr_t);
+
+      neighbor_type_t nt = olsr_neighbor_type(link_header->link_code);
+
+      for (int i = 0; i < link_header->size; i += sizeof(address_t))
+      {
+        address_t addr = *(address_t*)(link_content + i);
+
+        if (nt == SYM_NEIGH || nt == MPR_NEIGH)
+        {
+          if(addr == state.address)
+            continue;
+
+          olsr_neighbor2_tuple_t tuple;
+          olsr_neighbor2_tuple_init(&tuple);
+          tuple.N_neighbor_main_addr = header->addr;
+          tuple.N_2hop_addr = addr;
+          tuple.N_time = olsr_get_current_time() + Vtime;
+          olsr_neighbor2_set_insert(&tuple);
+        }
+        else // NOT_NEIGH
+        {
+          FOREACH_NEIGHBOR2(n,
+            if (n->N_neighbor_main_addr == header->addr
+                && n->N_2hop_addr == addr)
+              olsr_neighbor2_set_delete(__i_neighbor2));
+        }
+      }
+      cursor += link_header->size;
+    }
+  }
+
+  // MS set:
+  {
+    packet_byte_t* cursor = (packet_byte_t*)message;
+    packet_byte_t* end = (packet_byte_t*)header + header->size;
+
+    while (cursor < end)
+    {
+      olsr_link_message_hdr_t* link_header =
+        (olsr_link_message_hdr_t*)cursor;
+
+      packet_byte_t* link_content =
+        (packet_byte_t*)link_header
+        + sizeof(olsr_link_message_hdr_t);
+
+      neighbor_type_t nt = olsr_neighbor_type(link_header->link_code);
+
+      for (int i = 0; i < link_header->size; i += sizeof(address_t))
+      {
+        address_t addr = *(address_t*)(link_content + i);
+
+        if (nt == MPR_NEIGH)
+        {
+          for (int i = 0; i < IFACES_COUNT; i++)
+          {
+            if (state.iface_addresses[i] == addr)
+            {
+              olsr_ms_tuple_t* ms = NULL;
+              FOREACH_MS(m,
+                if (m->MS_main_addr == header->addr)
+                {
+                  ms = m;
+                  break;
+                });
+              if (!ms)
+              {
+                olsr_ms_tuple_t tuple;
+                tuple.MS_main_addr = header->addr;
+                ms = olsr_ms_set_insert(&tuple);
+              }
+              ms->MS_time = olsr_get_current_time() + Vtime;
+            }
+          }
+        }
+      }
+      cursor += link_header->size;
+    }
+  }
 }
 
 void

@@ -65,7 +65,7 @@ olsr_has_to_be_forwarded(address_t addr, seq_num_t sn, interface_t iface, int* n
         && tuple->sn == sn)
     {
       if (n)
-        *n = __i;
+        *n = __i_duplicate;
       // FIXME: Is that really correct ?
       //
 

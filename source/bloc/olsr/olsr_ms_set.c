@@ -16,7 +16,7 @@ olsr_is_ms(address_t addr)
   FOREACH_MS(tuple,
     if (tuple->MS_time < olsr_get_current_time())
     {
-      olsr_ms_set_delete(__i);
+      olsr_ms_set_delete(__i_ms);
       continue;
     }
 

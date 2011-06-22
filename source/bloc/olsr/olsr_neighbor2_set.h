@@ -12,6 +12,7 @@ typedef struct
   address_t N_2hop_addr;
   time_t N_time;
 } olsr_neighbor2_tuple_t;
+
 SET_DECLARE(neighbor2, NEIGHBOR2_SET_MAX_SIZE)
 SET_DEFAULT_BINDINGS(neighbor2)
 # define FOREACH_NEIGHBOR2(Var, Code)                \

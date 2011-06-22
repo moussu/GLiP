@@ -52,9 +52,9 @@ bool
 olsr_is_symetric_neighbor(address_t addr)
 {
   FOREACH_NEIGHBOR(tuple,
-                   if (tuple->N_neighbor_main_addr == addr)
-                     return TRUE
-    )
+    if (tuple->N_neighbor_main_addr == addr
+      && tuple->N_status == SYM)
+      return TRUE)
 
   return FALSE;
 }

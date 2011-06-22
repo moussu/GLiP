@@ -15,8 +15,14 @@ typedef struct
 
 SET_DECLARE(ms, MS_SET_MAX_SIZE)
 SET_DEFAULT_BINDINGS(ms)
-# define FOREACH_MS(Var, Code)                  \
-  SET_FOREACH(ms, Var, Code)
+# define FOREACH_MS(Var, Code)                                  \
+  SET_FOREACH(ms, Var,                                          \
+              if (Var->MS_time <= olsr_get_current_time())      \
+              {                                                 \
+                olsr_ms_set_delete(__i_ms);                     \
+                continue;                                       \
+              }                                                 \
+              Code)
 
 void olsr_ms_tuple_init(olsr_ms_tuple_t* tuple);
 bool olsr_is_ms(address_t addr);
