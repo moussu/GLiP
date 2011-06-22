@@ -11,7 +11,7 @@ typedef struct
   address_t T_dest_addr;
   address_t T_last_addr;
   seq_num_t T_seq;
-  time_t T_time;
+  olsr_time_t T_time;
 } olsr_topology_tuple_t;
 
 SET_DECLARE(topology, TOPOLOGY_SET_MAX_SIZE)

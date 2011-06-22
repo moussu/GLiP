@@ -10,7 +10,7 @@ typedef struct
 {
   address_t N_neighbor_main_addr;
   address_t N_2hop_addr;
-  time_t N_time;
+  olsr_time_t N_time;
 } olsr_neighbor2_tuple_t;
 
 SET_DECLARE(neighbor2, NEIGHBOR2_SET_MAX_SIZE)

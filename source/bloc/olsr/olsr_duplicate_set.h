@@ -13,7 +13,7 @@ typedef struct
 {
   address_t   addr;
   seq_num_t   sn;
-  time_t      time;
+  olsr_time_t      time;
   interface_t ifaces[4];
   uint8_t     n_ifaces;
   bool        retrans;

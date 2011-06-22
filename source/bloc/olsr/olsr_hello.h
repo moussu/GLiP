@@ -37,7 +37,7 @@
 
 typedef struct
 {
-  time_t Htime;
+  olsr_time_t Htime;
   willingness_t willingness;
 } olsr_hello_message_hdr_t;
 
