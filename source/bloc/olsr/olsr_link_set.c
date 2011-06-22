@@ -259,7 +259,6 @@ olsr_send_hello(interface_t iface)
   hello_message.header.size = sizeof(olsr_message_hdr_t);
 
   olsr_hello_message_hdr_t hello_header;
-  hello_header.reserved = 0;
   hello_header.Htime = olsr_serialize_time(
     olsr_seconds_to_time(HELLO_INTERVAL_S));
   hello_header.willingness = willingness;
@@ -268,7 +267,6 @@ olsr_send_hello(interface_t iface)
                       sizeof(olsr_hello_message_hdr_t));
 
   olsr_link_message_hdr_t link_header;
-  link_header.reserved = 0;
   link_header.size = sizeof(olsr_link_message_hdr_t) + sizeof(address_t);
 
   FOREACH_LINK(t,
