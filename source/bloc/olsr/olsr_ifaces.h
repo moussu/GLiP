@@ -12,6 +12,13 @@ typedef enum
   EAST_IFACE  = 3,
 } interface_t;
 
+inline char
+olsr_iface_print(interface_t iface)
+{
+  static const char ifaces[4] = {'N', 'W', 'S', 'E'};
+  return ifaces[iface];
+}
+
 inline address_t
 olsr_get_interface_address(address_t main_address,
                            interface_t iface)

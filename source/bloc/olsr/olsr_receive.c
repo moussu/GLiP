@@ -34,6 +34,9 @@ olsr_receive_task(void* pvParameters)
   for (;;)
   {
     length = simulator_receive((char*)packet, MAX_PACKET_SIZE, &iface);
+#ifdef DEBUG
+    printf("received packet from iface %c\n", olsr_iface_print(iface));
+#endif
     olsr_process_packet(packet, length, iface);
   }
 }

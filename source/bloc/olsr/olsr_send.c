@@ -96,6 +96,9 @@ olsr_send_task(void* pvParameters)
         packet.header.length += sizeof(olsr_packet_hdr_t);
         packet.header.sn++;
         simulator_send((char*)&packet, packet.header.length, iface);
+#ifdef DEBUG
+        printf("sending packet via iface %c\n", olsr_iface_print(iface));
+#endif
       }
     }
   }
