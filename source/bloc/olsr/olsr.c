@@ -35,9 +35,8 @@ olsr_init(address_t uid)
     state.iface_addresses[iface] =
       olsr_get_interface_address(uid, iface);
 
-  xTaskCreate(olsr_hello_task, (signed portCHAR*)"HelloTask",
-              configMINIMAL_STACK_SIZE, NULL,
-              tskIDLE_PRIORITY, NULL);
+  olsr_hello_init();
+
   xTaskCreate(olsr_send_task, (signed portCHAR*)"SendTask",
               configMINIMAL_STACK_SIZE, NULL,
               tskIDLE_PRIORITY, NULL);

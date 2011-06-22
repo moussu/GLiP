@@ -14,10 +14,19 @@ typedef struct
 } olsr_neighbor2_tuple_t;
 
 SET_DECLARE(neighbor2, NEIGHBOR2_SET_MAX_SIZE)
-SET_DEFAULT_BINDINGS(neighbor2)
+SET_SYNCHRO_DECLARE(neighbor2)
+SET_DEFAULT_INIT(neighbor2)
+SET_DEFAULT_EMPTY(neighbor2)
+SET_DEFAULT_INSERT(neighbor2)
+SET_DEFAULT_APPLY(neighbor2)
+SET_DEFAULT_FIND(neighbor2)
+SET_DEFAULT_IS_EMPTY(neighbor2)
+SET_DEFAULT_DECLARE_EMPTY(neighbor2)
+
 # define FOREACH_NEIGHBOR2(Var, Code)                \
   SET_FOREACH(neighbor2, Var, Code)
 
 void olsr_neighbor2_tuple_init(olsr_neighbor2_tuple_t* tuple);
+void olsr_neighbor2_set_delete(int i);
 
 #endif

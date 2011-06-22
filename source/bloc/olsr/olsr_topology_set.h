@@ -15,6 +15,7 @@ typedef struct
 } olsr_topology_tuple_t;
 
 SET_DECLARE(topology, TOPOLOGY_SET_MAX_SIZE)
+SET_SYNCHRO_DECLARE(topology)
 SET_DEFAULT_BINDINGS(topology)
 # define FOREACH_TOPOLOGY(Var, Code)            \
   SET_FOREACH(topology, Var, Code)

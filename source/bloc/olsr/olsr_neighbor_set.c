@@ -1,5 +1,8 @@
 #include "olsr_message.h"
+#include "olsr_mpr_set.h"
+#include "olsr_ms_set.h"
 #include "olsr_neighbor_set.h"
+#include "olsr_neighbor2_set.h"
 #include "olsr_hello.h"
 #include "olsr_state.h"
 
@@ -12,6 +15,40 @@ olsr_neighbor_tuple_init(olsr_neighbor_tuple_t* tuple)
   tuple->N_status = NOT_NEIGH;
   tuple->N_willingness = WILL_DEFAULT;
   tuple->advertised = FALSE;
+}
+
+static void
+olsr_neighbor_set_expire(const olsr_neighbor_tuple_t* tuple)
+{
+  /*
+    -    In case of neighbor loss, all 2-hop tuples with
+         N_neighbor_main_addr == Main Address of the neighbor MUST be
+         deleted.
+   */
+
+  bool deleted = FALSE;
+  FOREACH_NEIGHBOR2(n2,
+    if (n2->N_neighbor_main_addr == tuple->N_neighbor_main_addr)
+    {
+      olsr_neighbor2_set_delete_(__i_neighbor2);
+      deleted = TRUE;
+    });
+
+  FOREACH_MS(ms,
+    if (ms->MS_main_addr == tuple->N_neighbor_main_addr)
+      olsr_ms_set_delete(__i_ms));
+
+  // Optimisation we use olsr_neighbor2_delete_ and recompute the mpr
+  // set only after. See olsr_neighbor2_set_delete.
+  if (deleted)
+    olsr_mpr_set_recompute();
+}
+
+void
+olsr_neighbor_set_delete(int i)
+{
+  olsr_neighbor_set_expire(neighbor_set.tuples + i);
+  olsr_neighbor_set_delete_(i);
 }
 
 void

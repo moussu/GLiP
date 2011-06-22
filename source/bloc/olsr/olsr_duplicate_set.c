@@ -1,7 +1,7 @@
 #include "olsr_duplicate_set.h"
 #include "olsr_state.h"
 
-SET_IMPLEMENT(duplicate, DUPLICATE_SET_MAX_SIZE)
+SET_SYNCHRO_DEFAULT_IMPLEMENT(duplicate, DUPLICATE_SET_MAX_SIZE, time)
 
 void
 olsr_duplicate_tuple_init(olsr_duplicate_tuple_t* t)

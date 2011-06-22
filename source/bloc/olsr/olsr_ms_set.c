@@ -1,7 +1,7 @@
 #include <string.h>
 #include "olsr_ms_set.h"
 
-SET_IMPLEMENT(ms, MS_SET_MAX_SIZE)
+SET_SYNCHRO_DEFAULT_IMPLEMENT(ms, MS_SET_MAX_SIZE, MS_time)
 
 void
 olsr_ms_tuple_init(olsr_ms_tuple_t* tuple)
@@ -21,8 +21,7 @@ olsr_is_ms(address_t addr)
     }
 
     if (tuple->MS_main_addr == addr)
-      return TRUE;
-    )
+      return TRUE);
 
   return FALSE;
 }

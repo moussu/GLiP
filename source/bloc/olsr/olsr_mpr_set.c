@@ -1,3 +1,4 @@
+#include "olsr_hello.h"
 #include "olsr_ifaces.h"
 #include "olsr_link_set.h"
 #include "olsr_mpr_set.h"
@@ -37,7 +38,6 @@ SET_IMPLEMENT_(N2, neighbor2, MPR_SET_MAX_SIZE)
 
 # define FOREACH_N2(Var, Code)                  \
   SET_FOREACH_(N2, neighbor2, Var, Code)
-
 
 void
 olsr_mpr_tuple_init(olsr_mpr_tuple_t* tuple)
@@ -201,4 +201,10 @@ olsr_mpr_set_recompute()
 
   for (int iface = 0; iface < IFACES_COUNT; iface++)
     olsr_mpr_set_compute_iface(iface);
+
+  /*
+     -    An additional HELLO message MAY be sent when the MPR set
+          changes.
+  */
+  olsr_hello_force_send();
 }

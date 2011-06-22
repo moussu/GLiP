@@ -7,7 +7,65 @@
 #include "olsr_send.h"
 #include "olsr_state.h"
 
-SET_IMPLEMENT(link, LINK_SET_MAX_SIZE)
+SET_SYNCHRO_IMPLEMENT(link, LINK_SET_MAX_SIZE)
+
+/*
+     -    The L_SYM_time field of a link tuple expires.  This is
+          considered as a neighbor loss if the link described by the
+          expired tuple was the last link with a neighbor node (on the
+          contrary, a link with an interface may break while a link with
+          another interface of the neighbor node remains without being
+          observed as a neighborhood change).
+ */
+
+static void
+olsr_link_set_expire(olsr_link_tuple_t* tuple)
+{
+  int pos = -1;
+  olsr_neighbor_tuple_t* neighbor =
+    olsr_link_set_associated_neighbor(tuple, &pos);
+
+  if (neighbor && pos != -1)
+  {
+    bool remove = TRUE;
+
+    FOREACH_LINK(l,
+      if (l == tuple)
+        continue;
+      if (olsr_iface_to_main_address(l->L_neighbor_iface_addr)
+          == neighbor->N_neighbor_main_addr)
+      {
+        remove = FALSE;
+        break;
+      });
+
+    if (remove)
+      olsr_neighbor_set_delete(pos);
+  }
+}
+
+void
+olsr_link_set_task(void* pvParameters)
+{
+  portTickType xLastWakeTime;
+  for (;;)
+  {
+    vTaskDelayUntil(&xLastWakeTime, SET_REFRESH_TIME_MS);
+
+    if (link_set.n_tuples == 0)
+      continue;
+
+    SET_MUTEX_TAKE(link);
+
+    FOREACH_LINK(l,
+      if (l->L_time >= olsr_get_current_time())
+        olsr_link_set_delete(__i_link);
+      else if (l->L_SYM_time >= olsr_get_current_time())
+        olsr_link_set_expire(l)); // FIXME: delete too ?
+
+    SET_MUTEX_GIVE(link);
+  }
+}
 
 void
 olsr_link_tuple_init(olsr_link_tuple_t* tuple)
@@ -108,7 +166,7 @@ olsr_link_set_updated(const olsr_link_tuple_t* lt)
   olsr_neighbor_tuple_init(&tuple);
 
   olsr_neighbor_tuple_t* nt =
-    olsr_link_set_associated_neighbor(lt);
+    olsr_link_set_associated_neighbor(lt, NULL);
 
   if (!nt)
   {
@@ -125,18 +183,51 @@ olsr_link_set_updated(const olsr_link_tuple_t* lt)
         && link->L_SYM_time >= olsr_get_current_time())
     {
       nt->N_status = SYM;
-    })
+    });
+
+  /*
+     -    A new link tuple is inserted in the Link Set with a non
+          expired L_SYM_time or a tuple with expired L_SYM_time is
+          modified so that L_SYM_time becomes non-expired.  This is
+          considered as a neighbor appearance if there was previously no
+          link tuple describing a link with the corresponding neighbor
+          node.
+   */
+
+  // FIXME: is that right ?
+
+  if (lt->L_SYM_time > olsr_get_current_time())
+  {
+    int pos = -1;
+    olsr_neighbor_tuple_t* neighbor =
+      olsr_link_set_associated_neighbor(lt, &pos);
+
+    if (neighbor && pos != -1)
+    {
+      olsr_neighbor_tuple_t tuple;
+      olsr_neighbor_tuple_init(&tuple);
+      neighbor = olsr_neighbor_set_insert(&tuple);
+      neighbor->N_neighbor_main_addr =
+        olsr_iface_to_main_address(lt->L_neighbor_iface_addr);
+    }
+
+    neighbor->N_status = SYM;
+  }
 }
 
 olsr_neighbor_tuple_t*
-olsr_link_set_associated_neighbor(const olsr_link_tuple_t* tuple)
+olsr_link_set_associated_neighbor(const olsr_link_tuple_t* tuple, int* pos)
 {
   FOREACH_NEIGHBOR(t,
     if (t->N_neighbor_main_addr
         == olsr_iface_to_main_address(
           tuple->L_neighbor_iface_addr))
-      return t
-    )
+    {
+      if (pos)
+        *pos = __i_neighbor;
+      return t;
+    });
+
   return NULL;
 }
 
@@ -210,8 +301,7 @@ olsr_send_hello(interface_t iface)
     olsr_message_append(&hello_message, &link_header,
                         sizeof(olsr_link_message_hdr_t));
     olsr_message_append(&hello_message, &t->L_neighbor_iface_addr,
-                        sizeof(address_t));
-    )
+                        sizeof(address_t)));
 
 
   olsr_advertise_neighbors(&hello_message);
