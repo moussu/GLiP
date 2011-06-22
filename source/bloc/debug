@@ -1,34 +1,84 @@
 #! /bin/sh
 
 pwd=$PWD
-#file=$pwd/simulator.pid
 
-if [ $(dirname $0) != "." ]; then
-    cd $(dirname $0)
+usage()
+{
+    echo "usage: $0 n_blocs [term]    " 1>&2
+    echo "       term = xterm | xemacs" 1>&2
+}
+
+if [ $# -lt 1 ]; then
+    usage
+    exit 1
 fi
 
-#if [ -f $file ]; then
-#    kill -9 $(cat $file) 2>&1 > /dev/null
-#    rm $file
-#fi
+n_blocs=$1
+term=$2
+server=4444
+start=6543
+ports=$(seq $start $(($start + $n_blocs - 1)))
+
+if [ -z "$term" ]; then
+    term=xemacs
+fi
+
+if [ "$term" != "xterm" -a "$term" != "xemacs" ]; then
+    usage
+    echo 1>&2
+    echo "error: term must be 'xterm' or 'xemacs'" 1>&2
+    exit 1
+fi
+
+
+cd $(dirname $0)
+
+make
 
 cd ../simulator
-sbt run > /dev/null&
-#echo $! > $file
-cd $pwd
+sbt compile
+sbt run &
+sbt=$!
+cd -
 
-sleep 5s
-
-for port in $(seq 6544 6547); do
-    kill -9 $(lsof -i udp:$port | tail -n1 | awk '{print $2}')
-    xterm -rv -e "gdb --args main $port"&
+for port in $ports; do
+    case "$term" in
+        xterm)
+            if [ "$bg" != "-rv" ]; then bg="-rv"; else bg=""; fi
+            wait="while ! lsof -i udp:$server > /dev/null; do sleep 0.1s; done;"
+            gdb="gdb -q -ex run --args main $port"
+            xterm $bg -e zsh -c "$wait $gdb" &
+            sleep 0.1s
+            ;;
+        xemacs)
+            gdb="./gdb --annotate=3 -q -ex run --args main $port"
+            emacs main.c --eval "(gdb \"$gdb\")" &
+            ;;
+    esac
 done
 
 finish()
 {
+    # Restore current directory:
     cd $pwd
-    killall -q java
-    killall -q xterm
+
+    case "$term" in
+        xemacs)
+            ps aux | grep "[e]macs" | grep "main\.c" | grep "\./gdb" | grep "main" \
+                | awk '{print $2}' | xargs kill
+            ;;
+    esac
+
+    # Close sockets:
+    for port in $ports $server; do
+        lsof -i udp:$port | tail -n1 | awk '{print $2}' | xargs kill &> /dev/null
+    done
+
+    # Kill processes:
+    ps -f ax | awk '{printf("%d %d\n", $2, $3)}' | grep $sbt | awk '{print $1}' | xargs kill &> /dev/null
+    ps aux | grep "[s]imulator.Simulator" | awk '{print $2}' | xargs kill &> /dev/null
+
+    # Exit gently:
     exit 0
 }
 

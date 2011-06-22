@@ -1,0 +1,33 @@
+#! /bin/sh
+
+pwd=$PWD
+server=4444
+
+cd $(dirname $0)
+
+# Wait for the server to be started:
+while ! lsof -i udp:$server > /dev/null; do
+    sleep 0.1s;
+done;
+
+finish()
+{
+    # Restore current directory:
+    cd $pwd
+
+    # Close sockets:
+    for port in $port; do
+        lsof -i udp:$port | tail -n1 | awk '{print $2}' | xargs kill &> /dev/null
+    done
+
+    # Exit gently:
+    exit 0
+}
+
+trap "finish" SIGINT SIGTERM
+
+gdb $*
+
+finish
+
+exit 0
