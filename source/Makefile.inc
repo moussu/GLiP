@@ -9,17 +9,18 @@
 MKDIR_P = mkdir -p
 
 CC = ccache gcc
-CFLAGS = -std=c99 -Wall -fmessage-length=0 -pthread \
-	-include signal.h -include pthread.h -include setjmp.h \
-	-include bits/local_lim.h -include bits/sigthread.h \
-	-include bits/sigset.h -include bits/sigaction.h \
-	-include FreeRTOSConfig.h \
-	$(INCCFLAGS) $(ARCHFLAGS) $(OPTFLAGS) $(DEBUGFLAGS)
-INCCFLAGS = -DGCC_POSIX
-INCCFLAGS +=  -I. -I$(FREERTOS_INCDIR) -I$(FREERTOS_PLATDIR) \
-	-I$(FW_INCDIR) -I$(STM32_DIR) -I$(FIRMWARE_DIR) $(PROGRAM_MODE)
+CFLAGS = -std=c99 $(ARCHFLAGS)           \
+	 -DDEBUG_BUILD=1 -DUSE_STDIO=1   \
+	 $(INCCFLAGS) $(OPTFLAGS)        \
+	 -Wall -Werror -fmessage-length=0\
+	 -pthread -lrt -Wno-pointer-sign \
+	 $(DEBUGFLAGS)
+INCCFLAGS = -I. -I$(FREERTOS_INCDIR) -I$(FREERTOS_PLATDIR)  \
+	    -I$(FW_INCDIR) -I$(STM32_DIR) -I$(FIRMWARE_DIR) \
+	    $(PROGRAM_MODE) -include FreeRTOSConfig.h
+
 ARCHFLAGS = -D__GCC_POSIX__=1
-OPTFLAGS = -g -O2
+OPTFLAGS = -O2 -g
 
 ifeq ($(MODE),flash)
 PROGRAM_MODE=-DPROGRAM_MODE_FLASH

@@ -2,8 +2,9 @@
 #include <string.h>
 #include <queue.h>
 #include <task.h>
+
 #include "comm/simulator.h"
-#include "lfsr.h"
+#include "utils/lfsr.h"
 #include "olsr_constants.h"
 #include "olsr_send.h"
 #include "olsr_state.h"
