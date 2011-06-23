@@ -14,7 +14,7 @@ OBJS = $(notdir $(SRCS:.c=.o)) tasks.o queue.o port.o list.o heap_3.o croutine.o
 
 include ../Makefile.inc
 
-CFLAGS += -DMBLED -DDEBUG
+CFLAGS += -DMBLED -DDEBUG -include debug.h
 
 DIRS = fakehardware olsr utils watchdog comm
 

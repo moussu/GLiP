@@ -269,7 +269,11 @@ static void
 olsr_hello_send_ifaces()
 {
   for (int iface = 0; iface < IFACES_COUNT; iface++)
+  {
+    DEBUG_PRINT("generate hello for iface %c\n",
+                olsr_iface_print(iface));
     olsr_send_hello(iface);
+  }
   //force_send = FALSE;
 }
 
@@ -288,7 +292,6 @@ olsr_hello_task1(void* pvParameters)
   for (;;)
   {
     //xSemaphoreTake(hello_mutex, portMAX_DELAY);
-
     olsr_hello_send_ifaces();
 
     //xSemaphoreGive(hello_mutex);

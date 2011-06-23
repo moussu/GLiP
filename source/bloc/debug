@@ -20,7 +20,7 @@ start=6543
 ports=$(seq $start $(($start + $n_blocs - 1)))
 
 if [ -z "$term" ]; then
-    term=xemacs
+    term=xterm
 fi
 
 if [ "$term" != "xterm" -a "$term" != "xemacs" ]; then
@@ -51,7 +51,7 @@ for port in $ports; do
             sleep 0.1s
             ;;
         xemacs)
-            gdb="./gdb --annotate=3 -q -ex run --args main $port"
+            gdb="./gdb -x .gdbinit --annotate=3 -q -ex run --args main $port"
             emacs main.c --eval "(gdb \"$gdb\")" &
             ;;
     esac

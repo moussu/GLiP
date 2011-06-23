@@ -73,6 +73,7 @@ olsr_send_task(void* pvParameters)
 
       write_position = packet.content;
       end = write_position + MAX_PACKET_CONTENT_SIZE;
+      int message_count = 0;
       while (xQueueReceive(send_queues[iface], &message, 0))
       {
         if (write_position + message.content_size > end)
@@ -87,7 +88,11 @@ olsr_send_task(void* pvParameters)
         write_position += sizeof(olsr_message_hdr_t);
         memcpy(write_position, message.content, message.content_size);
 
+        DEBUG_PRINT("packing message[%dbytes] in packet\n",
+                    message.header.size);
+
         write_position += message.content_size;
+        message_count++;
       }
 
       packet.header.length = write_position - packet.content;
@@ -96,9 +101,9 @@ olsr_send_task(void* pvParameters)
         packet.header.length += sizeof(olsr_packet_hdr_t);
         packet.header.sn++;
         simulator_send((char*)&packet, packet.header.length, iface);
-#ifdef DEBUG
-        printf("sending packet via iface %c\n", olsr_iface_print(iface));
-#endif
+        DEBUG_PRINT("send packet[%d mess, %dbytes] -> iface %c\n",
+                    message_count, packet.header.length,
+                    olsr_iface_print(iface));
       }
     }
   }
