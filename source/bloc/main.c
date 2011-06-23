@@ -23,6 +23,7 @@ int main (int argc, char** argv)
 {
   const int id = simulator_init(atoi(argv[1]));
   const address_t main_address = id << 2;
+  DEBUG_SERVER("main address is 0x%x", main_address);
   olsr_init(main_address);
 
   // Start scheduler and tasks

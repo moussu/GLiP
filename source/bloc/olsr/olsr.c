@@ -32,8 +32,14 @@ olsr_init(address_t uid)
   olsr_topology_set_init();
 
   for (int iface = 0; iface < IFACES_COUNT; iface++)
+  {
     state.iface_addresses[iface] =
       olsr_get_interface_address(uid, iface);
+    DEBUG_SERVER("iface %c address is 0x%x",
+                 olsr_iface_print(iface),
+                 state.iface_addresses[iface]);
+  }
+
 
   olsr_send_init();
   olsr_receive_init();

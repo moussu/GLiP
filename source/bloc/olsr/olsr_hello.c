@@ -270,9 +270,11 @@ olsr_hello_send_ifaces()
 {
   for (int iface = 0; iface < IFACES_COUNT; iface++)
   {
-    DEBUG_PRINT("generate hello for iface %c\n",
+    DEBUG_HELLO("generate hello for iface %c",
                 olsr_iface_print(iface));
+    DEBUG_INC;
     olsr_send_hello(iface);
+    DEBUG_DEC;
   }
   //force_send = FALSE;
 }
