@@ -2,7 +2,7 @@
 #include <queue.h>
 #include <task.h>
 
-#include "lfsr.h"
+#include "utils/lfsr.h"
 #include "olsr.h"
 #include "olsr_state.h"
 #include "olsr_types.h"

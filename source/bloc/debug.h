@@ -1,7 +1,7 @@
 #ifndef DEBUG_H
 # define DEBUG_H
 
-# include <stdio.h>
+#include <stdio.h>
 
 typedef enum
 {
@@ -15,30 +15,7 @@ typedef enum
 extern int debug;
 extern int indent;
 
-inline void
-textcolor(color_t color)
-{
-  switch (color)
-  {
-    case YELLOW:
-      printf("[33;01;33m");
-      break;
-    case BLUE:
-      printf("[33;01;36m");
-      break;
-    case GREEN:
-      printf("[33;01;32m");
-      break;
-    case RED:
-      printf("[33;01;31m");
-      break;
-    default:
-    case WHITE:
-      printf("[0m");
-      break;
-  }
-  fflush(stdout);
-}
+void textcolor(color_t color);
 
 # ifdef DEBUG
 #  define DEBUG_PRINT(S, Color, ...)                 \

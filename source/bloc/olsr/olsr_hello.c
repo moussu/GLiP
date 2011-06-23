@@ -1,6 +1,7 @@
 #include <FreeRTOS.h>
 #include <task.h>
-#include "max.h"
+
+#include "utils/max.h"
 #include "olsr_hello.h"
 #include "olsr_message.h"
 #include "olsr_constants.h"
