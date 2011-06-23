@@ -17,10 +17,7 @@ simulator_init(int server_port)
   buffer[0] = 'p';
   sprintf(buffer + 1, "%d", server_port);
 
-#ifdef DEBUG
-  printf("port: %d\n", server_port);
-  printf("->: %s\n", buffer);
-#endif
+  DEBUG_PRINT("port: %d\n", server_port);
 
   udp_client_send(&simulator.client, buffer, strlen(buffer));
   size = udp_server_recv(&simulator.server, buffer, 32);
@@ -35,9 +32,7 @@ simulator_init(int server_port)
 
   id = atoi(buffer + 1);
 
-#ifdef DEBUG
-  printf("id: %d\n", id);
-#endif
+  DEBUG_PRINT("id: %d\n", id);
 
   return id;
 }

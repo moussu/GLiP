@@ -27,6 +27,7 @@ olsr_receive_init()
 static void
 olsr_receive_task(void* pvParameters)
 {
+  olsr_packet_hdr_t* header = NULL;
   packet_byte_t packet[MAX_PACKET_SIZE] = {0};
   interface_t iface;
   int length;
@@ -34,9 +35,15 @@ olsr_receive_task(void* pvParameters)
   for (;;)
   {
     length = simulator_receive((char*)packet, MAX_PACKET_SIZE, &iface);
-#ifdef DEBUG
-    printf("received packet from iface %c\n", olsr_iface_print(iface));
-#endif
+    if (length >= sizeof(olsr_packet_hdr_t))
+    {
+      header = (olsr_packet_hdr_t*)packet;
+      DEBUG_PRINT("received packet[%dbytes] <- iface %c\n",
+                  header->length, olsr_iface_print(iface));
+    }
+    else
+      DEBUG_PRINT("received UNDERSIZED packet <- iface %c\n",
+                  olsr_iface_print(iface));
     olsr_process_packet(packet, length, iface);
   }
 }
