@@ -41,10 +41,11 @@ sbt run &
 sbt=$!
 cd -
 
+bg=-rv
 for port in $ports; do
     case "$term" in
         xterm)
-            if [ "$bg" != "-rv" ]; then bg="-rv"; else bg=""; fi
+            #if [ "$bg" != "-rv" ]; then bg="-rv"; else bg=""; fi
             wait="while ! lsof -i udp:$server > /dev/null; do sleep 0.1s; done;"
             gdb="gdb -q -ex run --args main $port"
             xterm $bg -e zsh -c "$wait $gdb" &

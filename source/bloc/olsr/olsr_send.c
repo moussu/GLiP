@@ -44,18 +44,23 @@ olsr_send_message_content(olsr_message_hdr_t* header,
 void
 olsr_send_message(olsr_message_t* message, interface_t iface)
 {
-  // Just in case it hasn't been done:
+  static int message_sn = 0;
+
+  // Just in case it hasn't been already done:
   message->header.size = message->content_size +
     sizeof(olsr_message_hdr_t);
   message->header.addr = state.iface_addresses[iface];
   message->header.hops = 0;
-  xQueueSend(send_queues[iface], &message, portMAX_DELAY);
+  message->header.sn = message_sn++;
+  DEBUG_SEND("putting message[sn:%d, size:%d] in sending queue",
+             message->header.sn, (int)message->header.size);
+  xQueueSend(send_queues[iface], message, portMAX_DELAY);
 }
 
 static void
 olsr_send_task(void* pvParameters)
 {
-  static int current_message_sn = 0;
+  //static int current_message_sn = 0;
   olsr_packet_t packet;
   packet_byte_t* write_position;
   packet_byte_t* end;
@@ -73,37 +78,78 @@ olsr_send_task(void* pvParameters)
 
       write_position = packet.content;
       end = write_position + MAX_PACKET_CONTENT_SIZE;
+
+#ifdef DEBUG
+      int i = 0;
+#endif
       int message_count = 0;
+      int message_length = 0;
+      int content_length = 0;
+
       while (xQueueReceive(send_queues[iface], &message, 0))
       {
-        if (write_position + message.content_size > end)
-          break;
-
         if (message.header.ttl == 0)
+        {
+          DEBUG_SEND("TTL expired! ignoring message[sn:%d, size:%d]",
+                     message.header.sn, message.header.size);
           continue;
+        }
 
-        message.header.sn = current_message_sn++;
-        memcpy(write_position, &message.header,
-               sizeof(olsr_message_hdr_t));
+#ifdef DEBUG
+        if (i == 0)
+        {
+          DEBUG_SEND("sending packets -> iface %c",
+                     olsr_iface_print(iface));
+
+          DEBUG_INC;
+
+          DEBUG_SEND("packing messages in packet[sn:%d]",
+                     packet.header.sn);
+
+          DEBUG_INC;
+        }
+        i++;
+#endif
+
+        //message.header.sn = current_message_sn++;
+        memcpy(write_position, &message.header, sizeof(olsr_message_hdr_t));
         write_position += sizeof(olsr_message_hdr_t);
+
         memcpy(write_position, message.content, message.content_size);
-
-        DEBUG_PRINT("packing message[%dbytes] in packet\n",
-                    message.header.size);
-
         write_position += message.content_size;
+
+        DEBUG_SEND("packing message[sn:%d, size:%d] in packet",
+                    message.header.sn, (int)message.header.size);
+
+        message_length = message.content_size + sizeof(olsr_message_hdr_t);
+        content_length += message_length;
         message_count++;
+
+        if (content_length > MAX_PACKET_CONTENT_SIZE - MAX_MESSAGE_SIZE)
+        {
+          DEBUG_SEND("packet max size of %d almost reached, stopping",
+                     MAX_PACKET_CONTENT_SIZE);
+          break;
+        }
       }
 
-      packet.header.length = write_position - packet.content;
+      packet.header.length = content_length;
+
       if (packet.header.length > 0)
       {
         packet.header.length += sizeof(olsr_packet_hdr_t);
         packet.header.sn++;
         simulator_send((char*)&packet, packet.header.length, iface);
-        DEBUG_PRINT("send packet[%d mess, %dbytes] -> iface %c\n",
-                    message_count, packet.header.length,
+
+#ifdef DEBUG
+        DEBUG_DEC;
+
+        DEBUG_SEND("send packet[mess:%d, size:%d] -> iface %c",
+                    message_count, (int)packet.header.length,
                     olsr_iface_print(iface));
+
+        DEBUG_DEC;
+#endif
       }
     }
   }

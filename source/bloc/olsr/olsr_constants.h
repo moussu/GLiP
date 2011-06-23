@@ -1,7 +1,7 @@
 #ifndef OLSR_CONSTANTS_H
 # define OLSR_CONSTANTS_H
 
-# define QUEUES_SIZE 32
+# define QUEUES_SIZE 512
 
 /* C is a scaling factor for the "validity time" calculation ("Vtime"
    and "Htime" fields in message headers, see section 18.3).  The

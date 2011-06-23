@@ -38,12 +38,14 @@ olsr_receive_task(void* pvParameters)
     if (length >= sizeof(olsr_packet_hdr_t))
     {
       header = (olsr_packet_hdr_t*)packet;
-      DEBUG_PRINT("received packet[%dbytes] <- iface %c\n",
-                  header->length, olsr_iface_print(iface));
+      DEBUG_RECEIVE("received packet[size:%d] <- iface %c",
+                    header->length, olsr_iface_print(iface));
     }
     else
-      DEBUG_PRINT("received UNDERSIZED packet <- iface %c\n",
-                  olsr_iface_print(iface));
+      DEBUG_RECEIVE("received UNDERSIZED packet <- iface %c",
+                    olsr_iface_print(iface));
+    DEBUG_INC;
     olsr_process_packet(packet, length, iface);
+    DEBUG_DEC;
   }
 }

@@ -119,8 +119,8 @@ typedef struct
 typedef struct
 {
   olsr_message_hdr_t header;
-  packet_byte_t content[MAX_MESSAGE_CONTENT_SIZE];
   int content_size;
+  packet_byte_t content[MAX_MESSAGE_CONTENT_SIZE];
 } olsr_message_t;
 
 void olsr_message_append(olsr_message_t* msg, void* data, int size_bytes);
