@@ -9,20 +9,26 @@ textcolor(color_t color)
 {
   switch (color)
   {
-    case YELLOW:
-      printf("[33;01;33m");
-      break;
-    case BLUE:
-      printf("[33;01;36m");
-      break;
-    case GREEN:
-      printf("[33;01;32m");
+    case GRAY:
+      printf("[33;01;30m");
       break;
     case RED:
       printf("[33;01;31m");
       break;
+    case GREEN:
+      printf("[33;01;32m");
+      break;
+    case YELLOW:
+      printf("[33;01;33m");
+      break;
     case PURPLE:
       printf("[33;01;34m");
+      break;
+    case PINK:
+      printf("[33;01;35m");
+      break;
+    case BLUE:
+      printf("[33;01;36m");
       break;
     case LRED:
       printf("[33;00;31m");
@@ -30,14 +36,17 @@ textcolor(color_t color)
     case LGREEN:
       printf("[33;00;32m");
       break;
-    case LBLUE:
-      printf("[33;00;36m");
-      break;
     case LYELLOW:
       printf("[33;00;33m");
       break;
     case LPURPLE:
       printf("[33;00;34m");
+      break;
+    case LPINK:
+      printf("[33;00;35m");
+      break;
+    case LBLUE:
+      printf("[33;00;36m");
       break;
     default:
     case WHITE:
