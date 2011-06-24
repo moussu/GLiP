@@ -99,7 +99,9 @@ olsr_process_hello_message(packet_byte_t* message, int size,
     (olsr_hello_message_hdr_t*)message;
   message += sizeof(olsr_hello_message_hdr_t);
 
-  // FIXME: Handle validity time.
+  DEBUG_HELLO("hello message [size:%d, sn:%d]",
+              header->size, header->sn);
+  DEBUG_INC;
 
   // Link set:
 
@@ -119,13 +121,26 @@ olsr_process_hello_message(packet_byte_t* message, int size,
   tuple->L_ASYM_time = olsr_get_current_time() + Vtime;
 
   {
-    packet_byte_t* cursor = (packet_byte_t*)message;
+    DEBUG_HELLO("updating link set:");
+    DEBUG_INC;
+
+    packet_byte_t* cursor = message;
     packet_byte_t* end = (packet_byte_t*)header + header->size;
+
+    DEBUG_HELLO("parsing link messages starting at %p, stopping at %p",
+                cursor, end);
+
+#ifdef DEBUG
+    int i = 0;
+#endif
 
     while (cursor < end)
     {
       olsr_link_message_hdr_t* link_header =
         (olsr_link_message_hdr_t*)cursor;
+
+      DEBUG_HELLO("link message [n:%d, size:%d, cursor:%p]",
+                  i++, link_header->size, cursor);
 
       packet_byte_t* link_content =
         (packet_byte_t*)link_header
@@ -160,10 +175,20 @@ olsr_process_hello_message(packet_byte_t* message, int size,
       cursor += link_header->size;
     }
 
+    DEBUG_HELLO("no more link message");
+
     tuple->L_time = MAX(tuple->L_time, tuple->L_ASYM_time);
 
     if (!inserted)
+    {
+      DEBUG_HELLO("tuple (%p) was updated not inserted", tuple);
+      DEBUG_HELLO("call link set update callbacks");
+      DEBUG_INC;
       olsr_link_set_updated(tuple);
+      DEBUG_DEC;
+    }
+
+    DEBUG_DEC;
   }
 
   // Neighbor set:
@@ -264,6 +289,8 @@ olsr_process_hello_message(packet_byte_t* message, int size,
       cursor += link_header->size;
     }
   }
+
+  DEBUG_DEC;
 }
 
 static void

@@ -219,6 +219,8 @@ olsr_neighbor_tuple_t*
 olsr_link_set_associated_neighbor(const olsr_link_tuple_t* tuple, int* pos)
 {
   FOREACH_NEIGHBOR(t,
+    DEBUG_HELLO("t (%p), tuple (%p)", t, tuple);
+
     if (t->N_neighbor_main_addr
         == olsr_iface_to_main_address(
           tuple->L_neighbor_iface_addr))
@@ -251,12 +253,14 @@ olsr_send_hello(interface_t iface)
   neighbor_type_t neighbor_type;
 
   olsr_message_t hello_message;
+
   hello_message.header.type = HELLO_MESSAGE;
   hello_message.header.Vtime = olsr_serialize_time(
     olsr_seconds_to_time(NEIGHB_HOLD_TIME_S)
     );
   hello_message.header.ttl = 1;
   hello_message.header.size = sizeof(olsr_message_hdr_t);
+  hello_message.content_size = 0;
 
   olsr_hello_message_hdr_t hello_header;
   hello_header.Htime = olsr_serialize_time(
@@ -268,6 +272,13 @@ olsr_send_hello(interface_t iface)
 
   olsr_link_message_hdr_t link_header;
   link_header.size = sizeof(olsr_link_message_hdr_t) + sizeof(address_t);
+  DEBUG_HELLO("hello message size (headers only) is %d", hello_message.header.size);
+
+#ifdef DEBUG
+  int i = 0;
+#endif
+  DEBUG_HELLO("packing link tuples");
+  DEBUG_INC;
 
   FOREACH_LINK(t,
     if (t->L_local_iface_addr != iface_address)
@@ -294,14 +305,19 @@ olsr_send_hello(interface_t iface)
     // Here I'm assuming that if the neighbor_main_address is not in
     // the MPR set it WILL be in the neighbor set...
 
+    DEBUG_HELLO("tuple [n:%d]", i++);
+
     link_header.link_code = olsr_link_code(link_type, neighbor_type);
     olsr_message_append(&hello_message, &link_header,
                         sizeof(olsr_link_message_hdr_t));
     olsr_message_append(&hello_message, &t->L_neighbor_iface_addr,
                         sizeof(address_t)));
 
+  DEBUG_DEC;
 
   olsr_advertise_neighbors(&hello_message);
+
+  DEBUG_HELLO("hello message size (headers + content) is %d", hello_message.header.size);
 
   olsr_send_message(&hello_message, iface);
 }

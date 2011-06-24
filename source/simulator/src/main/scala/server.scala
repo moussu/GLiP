@@ -52,13 +52,16 @@ package simulator.ether {
           }
           case 'm' => {
             val data = packetData.tail
-            val ir = Dir.fromChar(packetData(0).toChar)
-            pool.send(portsToBlocks(packet.getPort()), ir) match {
-              case Some((b, d)) => {
-                val msg = Array(d.toString.charAt(0).toByte) ++ data
+            val from = portsToBlocks(packet.getPort())
+            val from_iface = Dir.fromChar(packetData(0).toChar)
+            pool.send(from, from_iface) match {
+              case Some((to, to_iface)) => {
+                val msg = Array(to_iface.toString.charAt(0).toByte) ++ data
+                println(from + ":" + from_iface.toString +
+                        " -> " + to_iface.toString + ":" + to)
                 socket.send(new DatagramPacket(msg, msg.size,
                                                InetAddress.getLocalHost,
-                                               blocksToPorts(b)))
+                                               blocksToPorts(to)))
               }
               case None => {}
             }

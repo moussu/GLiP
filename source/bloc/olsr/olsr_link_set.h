@@ -9,7 +9,7 @@
 # include "olsr_types.h"
 # include "olsr_set.h"
 
-# define LINK_SET_MAX_SIZE 10
+# define LINK_SET_MAX_SIZE 100
 typedef struct
 {
   address_t L_local_iface_addr;

@@ -8,6 +8,9 @@
 #ifndef ASYNCIOSOCKET_H_
 #define ASYNCIOSOCKET_H_
 
+#include <FreeRTOS.h>
+#include <netinet/in.h>
+
 #define UDP_PACKET_SIZE		( 1023UL )
 
 typedef struct UDP_PACKET

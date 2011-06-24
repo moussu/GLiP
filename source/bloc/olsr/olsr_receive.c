@@ -1,18 +1,28 @@
+#include <string.h>
+#include <errno.h>
+
 #include <FreeRTOS.h>
 #include <queue.h>
 #include <task.h>
 
+#include <AsyncIOSocket.h>
+
+#include "olsr.h"
 #include "olsr_constants.h"
 #include "olsr_receive.h"
 #include "olsr_packet.h"
 #include "comm/simulator.h"
 
+static xQueueHandle receive_queue;
 static xQueueHandle receive_queues[IFACES_COUNT];
 static void olsr_receive_task(void* pvParameters);
 
 void
 olsr_receive_init()
 {
+  receive_queue = xQueueCreate(4 * QUEUES_SIZE,
+                               sizeof(xUDPPacket));
+
   for (int iface = 0; iface < IFACES_COUNT; iface++)
     receive_queues[iface] = xQueueCreate(QUEUES_SIZE,
                                          sizeof(olsr_packet_t));
@@ -24,28 +34,75 @@ olsr_receive_init()
 
 }
 
-static void
-olsr_receive_task(void* pvParameters)
+void
+olsr_receive_callback(int iSocket, void* pvContext)
 {
-  olsr_packet_hdr_t* header = NULL;
-  packet_byte_t packet[MAX_PACKET_SIZE] = {0};
-  interface_t iface;
+  portBASE_TYPE xHigherTaskWoken = pdFALSE;
+  static xUDPPacket xPacket;
+  static olsr_packet_t packet;
+  struct sockaddr_in xReceiveAddress;
   int length;
+  interface_t iface;
 
   for (;;)
   {
-    length = simulator_receive((char*)packet, MAX_PACKET_SIZE, &iface);
-    if (length >= sizeof(olsr_packet_hdr_t))
+    length = iSocketUDPReceiveISR(iSocket, &xPacket, &xReceiveAddress);
+
+    if (length > -1)
+      break;
+
+    switch (errno)
     {
-      header = (olsr_packet_hdr_t*)packet;
-      DEBUG_RECEIVE("received packet[size:%d] <- iface %c",
-                    header->length, olsr_iface_print(iface));
+      case EINTR:
+        break;
+      default:
+        fprintf(stderr, "Error %d in receive_callback: %s\n",
+                errno, strerror(errno));
+        goto isr;
     }
-    else
-      DEBUG_RECEIVE("received UNDERSIZED packet <- iface %c",
-                    olsr_iface_print(iface));
-    DEBUG_INC;
-    olsr_process_packet(packet, length, iface);
-    DEBUG_DEC;
+  }
+
+  if (length < sizeof(olsr_packet_hdr_t))
+    goto error;
+
+  if (olsr_iface_parse(xPacket.ucPacket[0], &iface) != -1)
+  {
+    memcpy(&packet.header, xPacket.ucPacket + 1, sizeof(olsr_packet_hdr_t));
+    memcpy(packet.content, xPacket.ucPacket + 1 + sizeof(olsr_packet_hdr_t),
+           length - sizeof(olsr_packet_hdr_t) - 1);
+    packet.content_size = length - sizeof(olsr_packet_hdr_t) - 1;
+
+    if (pdPASS != xQueueSendFromISR(receive_queues[iface], &packet,
+                                    &xHigherTaskWoken))
+      goto error;
+    goto isr;
+  }
+
+  error:
+  printf("UDP Rx failed\n");
+  isr:
+  portEND_SWITCHING_ISR(xHigherTaskWoken);
+}
+
+static void
+olsr_receive_task(void* pvParameters)
+{
+  olsr_packet_t packet;
+
+  for (;;)
+  {
+    for (int iface = 0; iface < IFACES_COUNT; iface++)
+    {
+      if(!xQueueReceive(receive_queues[iface], &packet,
+                        100 / portTICK_RATE_MS))
+        continue;
+
+      DEBUG_RECEIVE("received packet[size:%d] <- iface %c",
+                    packet.header.length, olsr_iface_print(iface));
+
+      DEBUG_INC;
+      olsr_process_packet(&packet, iface);
+      DEBUG_DEC;
+    }
   }
 }

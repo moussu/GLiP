@@ -13,7 +13,7 @@ typedef struct
   struct udp_comm_t server;
 } simulator_t;
 
-int simulator_init(int server_port);
+int simulator_init(int server_port, socket_callback_t socket);
 void simulator_send(const char* message, int size, interface_t iface);
 int simulator_receive(char* message, int max_size, interface_t* iface);
 

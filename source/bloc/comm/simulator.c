@@ -7,11 +7,11 @@
 static simulator_t simulator;
 
 int
-simulator_init(int server_port)
+simulator_init(int server_port, socket_callback_t callback)
 {
   static char buffer[32];
   int size, id;
-  udp_server_init(&simulator.server, "127.0.0.1", server_port);
+  udp_server_init(&simulator.server, "127.0.0.1", server_port, callback);
   udp_client_init(&simulator.client, "127.0.0.1", SIMULATOR_PORT);
   buffer[0] = 'p';
   sprintf(buffer + 1, "%d", server_port);
