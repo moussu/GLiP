@@ -55,4 +55,8 @@ olsr_link_set_associated_neighbor(const olsr_link_tuple_t* tuple, int* pos);
 bool olsr_is_iface_neighbor(address_t iface_address,
                             address_t neighbor_main_address);
 
+# ifdef DEBUG
+void olsr_link_set_print();
+# endif
+
 #endif

@@ -208,3 +208,31 @@ olsr_mpr_set_recompute()
   */
   olsr_hello_force_send();
 }
+
+#ifdef DEBUG
+void olsr_mpr_set_print()
+{
+  DEBUG_MPR("--- MPR SET ---");
+  DEBUG_MPR("");
+
+  DEBUG_INC;
+
+  DEBUG_MPR(".-%s-.", DASHES(4));
+
+  DEBUG_MPR("| %4s |", "addr");
+
+  DEBUG_MPR("+-%s-+", DASHES(4));
+
+  FOREACH_MPR(
+    m,
+    DEBUG_MPR("| %4d |", m->addr));
+
+  DEBUG_MPR("'-%s-'", DASHES(4));
+
+  DEBUG_DEC;
+
+  DEBUG_MPR("");
+
+  DEBUG_MPR("--- END MPR SET ---");
+}
+#endif

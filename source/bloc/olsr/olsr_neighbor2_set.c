@@ -31,3 +31,37 @@ olsr_neighbor2_tuple_init(olsr_neighbor2_tuple_t* tuple)
   tuple->N_time = 0;
 }
 
+#ifdef DEBUG
+void olsr_neighbor2_set_print()
+{
+  DEBUG_NEIGHBOR2("--- NEIGHBOR2 SET ---");
+  DEBUG_NEIGHBOR2("");
+
+  DEBUG_INC;
+
+  DEBUG_NEIGHBOR2("current time is %d", (int)olsr_get_current_time());
+  DEBUG_NEIGHBOR2("");
+
+  DEBUG_NEIGHBOR2(".-%s-.-%s-.-%s-.", DASHES(12), DASHES(12), DASHES(10));
+
+  DEBUG_NEIGHBOR2("| %12s | %12s | %10s |", "n main addr", "n2 main addr", "time");
+
+  DEBUG_NEIGHBOR2("+-%s-+-%s-+-%s-+", DASHES(12), DASHES(12), DASHES(10));
+
+  FOREACH_NEIGHBOR2_CREW(
+    n,
+    DEBUG_NEIGHBOR2("| %12d | %12d | %10d |",
+                   n->N_neighbor_main_addr,
+                   n->N_2hop_addr,
+                   n->N_time);
+    );
+
+  DEBUG_NEIGHBOR2("'-%s-'-%s-'-%s-'", DASHES(12), DASHES(12), DASHES(10));
+
+  DEBUG_DEC;
+
+  DEBUG_NEIGHBOR2("");
+
+  DEBUG_NEIGHBOR2("--- END NEIGHBOR2 SET ---");
+}
+#endif

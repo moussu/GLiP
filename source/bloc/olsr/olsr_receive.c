@@ -13,6 +13,16 @@
 #include "olsr_packet.h"
 #include "comm/simulator.h"
 
+#if defined DEBUG || defined SIMULATOR_DEBUG
+# include "olsr_duplicate_set.h"
+# include "olsr_link_set.h"
+# include "olsr_mpr_set.h"
+# include "olsr_ms_set.h"
+# include "olsr_neighbor_set.h"
+# include "olsr_neighbor2_set.h"
+#endif
+
+
 static xQueueHandle receive_queue;
 static xQueueHandle receive_queues[IFACES_COUNT];
 static void olsr_receive_task(void* pvParameters);
@@ -103,6 +113,15 @@ olsr_receive_task(void* pvParameters)
       DEBUG_INC;
       olsr_process_packet(&packet, iface);
       DEBUG_DEC;
+
+#ifdef DEBUG
+      olsr_duplicate_set_print();
+      olsr_link_set_print();
+      olsr_mpr_set_print();
+      olsr_ms_set_print();
+      olsr_neighbor_set_print();
+      olsr_neighbor2_set_print();
+#endif
     }
   }
 }

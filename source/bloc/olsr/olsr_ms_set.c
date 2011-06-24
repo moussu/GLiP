@@ -25,3 +25,36 @@ olsr_is_ms(address_t addr)
 
   return FALSE;
 }
+
+#ifdef DEBUG
+void olsr_ms_set_print()
+{
+  DEBUG_MS("--- MS SET ---");
+  DEBUG_MS("");
+
+  DEBUG_INC;
+
+  DEBUG_MS("current time is %d", (int)olsr_get_current_time());
+  DEBUG_MS("");
+
+  DEBUG_MS(".-%s-.-%s-.", DASHES(9), DASHES(10));
+
+
+  DEBUG_MS("| %9s | %10s |", "main addr", "time");
+
+  DEBUG_MS("+-%s-+-%s-+", DASHES(9), DASHES(10));
+
+  FOREACH_MS_CREW(
+    m,
+    DEBUG_MS("| %9d | %10d |", m->MS_main_addr, m->MS_time);
+    );
+
+  DEBUG_MS("'-%s-'-%s-'", DASHES(9), DASHES(10));
+
+  DEBUG_DEC;
+
+  DEBUG_MS("");
+
+  DEBUG_MS("--- END MS SET ---");
+}
+#endif

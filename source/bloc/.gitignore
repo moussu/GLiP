@@ -1,2 +1,3 @@
 core
 *.pid
+dashes.h

@@ -2,6 +2,8 @@
 # define DEBUG_H
 
 #include <stdio.h>
+#include "dashes.h"
+
 
 typedef enum
 {
@@ -9,6 +11,12 @@ typedef enum
   BLUE,
   GREEN,
   RED,
+  PURPLE,
+  LRED,
+  LGREEN,
+  LBLUE,
+  LYELLOW,
+  LPURPLE,
   WHITE,
 } color_t;
 
@@ -38,16 +46,34 @@ void textcolor(color_t color);
   indent--
 
 #  define DEBUG_SERVER(S, ...)                  \
-  DEBUG_PRINT(S, YELLOW, ##__VA_ARGS__)
+  DEBUG_PRINT(S, LYELLOW, ##__VA_ARGS__)
 
 #  define DEBUG_SEND(S, ...)                    \
-  DEBUG_PRINT(S, BLUE, ##__VA_ARGS__)
+  DEBUG_PRINT(S, LBLUE, ##__VA_ARGS__)
 
 #  define DEBUG_RECEIVE(S, ...)                 \
-  DEBUG_PRINT(S, GREEN, ##__VA_ARGS__)
+  DEBUG_PRINT(S, LGREEN, ##__VA_ARGS__)
 
 #  define DEBUG_HELLO(S, ...)                    \
+  DEBUG_PRINT(S, LRED, ##__VA_ARGS__)
+
+#  define DEBUG_LINK(S, ...)                    \
+  DEBUG_PRINT(S, PURPLE, ##__VA_ARGS__)
+
+#  define DEBUG_MPR(S, ...)                     \
+  DEBUG_PRINT(S, BLUE, ##__VA_ARGS__)
+
+#  define DEBUG_MS(S, ...)                      \
   DEBUG_PRINT(S, RED, ##__VA_ARGS__)
+
+#  define DEBUG_NEIGHBOR(S, ...)                \
+  DEBUG_PRINT(S, YELLOW, ##__VA_ARGS__)
+
+#  define DEBUG_NEIGHBOR2(S, ...)                \
+  DEBUG_PRINT(S, YELLOW, ##__VA_ARGS__)
+
+#  define DEBUG_DUPLICATE(S, ...)               \
+  DEBUG_PRINT(S, GREEN, ##__VA_ARGS__)
 
 # else
 #  define DEBUG_SET_ID(Id)

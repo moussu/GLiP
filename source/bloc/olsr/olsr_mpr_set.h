@@ -28,4 +28,8 @@ void olsr_mpr_set_insert(address_t addr);
 bool olsr_is_mpr(address_t address);
 void olsr_mpr_set_recompute();
 
+# ifdef DEBUG
+void olsr_mpr_set_print();
+# endif
+
 #endif

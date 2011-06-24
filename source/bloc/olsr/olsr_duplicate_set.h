@@ -14,7 +14,7 @@ typedef struct
   address_t   addr;
   seq_num_t   sn;
   olsr_time_t time;
-  interface_t ifaces[4];
+  interface_t ifaces[IFACES_COUNT];
   uint8_t     n_ifaces;
   bool        retrans;
 } olsr_duplicate_tuple_t;
@@ -33,5 +33,9 @@ bool olsr_already_processed(address_t addr, seq_num_t sn);
 bool olsr_already_forwarded(address_t addr, seq_num_t sn, interface_t iface);
 bool olsr_has_to_be_forwarded(address_t addr, seq_num_t sn, interface_t iface,
                               int* n);
+
+# ifdef DEBUG
+void olsr_duplicate_set_print();
+# endif
 
 #endif
