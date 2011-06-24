@@ -4,20 +4,22 @@
 #include <stdio.h>
 #include "dashes.h"
 
-
 typedef enum
 {
+  WHITE = 0,
+  GRAY,
   YELLOW,
   BLUE,
   GREEN,
   RED,
   PURPLE,
+  PINK,
   LRED,
   LGREEN,
   LBLUE,
   LYELLOW,
   LPURPLE,
-  WHITE,
+  LPINK,
 } color_t;
 
 extern int debug;
@@ -70,7 +72,7 @@ void textcolor(color_t color);
   DEBUG_PRINT(S, YELLOW, ##__VA_ARGS__)
 
 #  define DEBUG_NEIGHBOR2(S, ...)                \
-  DEBUG_PRINT(S, YELLOW, ##__VA_ARGS__)
+  DEBUG_PRINT(S, PINK, ##__VA_ARGS__)
 
 #  define DEBUG_DUPLICATE(S, ...)               \
   DEBUG_PRINT(S, GREEN, ##__VA_ARGS__)
