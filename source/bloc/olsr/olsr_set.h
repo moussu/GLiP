@@ -9,8 +9,9 @@
 # include "olsr_time.h"
 
 # define SET_FOREACH___(Name, Code)                     \
-  for (int __i_##Name = Name##_set.first_empty + 1;     \
-       __i_##Name < Name##_set.max_size; ++__i_##Name)  \
+  for (int __i_##Name = 0;                              \
+       __i_##Name < Name##_set.max_size;                \
+       ++__i_##Name)                                    \
   {                                                     \
     Code;                                               \
   }
@@ -80,11 +81,17 @@
   inline bool                                                           \
   olsr_##Name##_set_is_empty_(int i)                                    \
   {                                                                     \
-    return Name##_set.bitmap[i / 8] & (1 << (i % 8));                   \
+    return (Name##_set.bitmap[i / 8] & (1 << (i % 8))) ? FALSE : TRUE;  \
   }                                                                     \
                                                                         \
   inline void                                                           \
   olsr_##Name##_set_declare_empty_(int i)                               \
+  {                                                                     \
+    Name##_set.bitmap[i / 8] &= ~(1 << (i % 8));                        \
+  }                                                                     \
+                                                                        \
+  inline void                                                           \
+  olsr_##Name##_set_declare_used_(int i)                                \
   {                                                                     \
     Name##_set.bitmap[i / 8] |= (1 << (i % 8));                         \
   }
@@ -102,8 +109,8 @@
     Name##_set.full = FALSE;                                            \
     Name##_set.n_tuples = 0;                                            \
     Name##_set.first_empty = 0;                                         \
-    memset(Name##_set.bitmap, 0, sizeof Name##_set.bitmap);             \
-    memset(Name##_set.tuples, 0, sizeof Name##_set.tuples);             \
+    memset(Name##_set.bitmap, 0, MaxSize / 8);                          \
+    memset(Name##_set.tuples, 0, MaxSize * sizeof(olsr_##Tuple##_tuple_t)); \
     SET_FOREACH_(Name, Tuple, tuple, olsr_##Tuple##_tuple_init(tuple)); \
     __VA_ARGS__                                                         \
   }                                                                     \
@@ -120,6 +127,7 @@
       return NULL;                                                      \
                                                                         \
     Name##_set.tuples[Name##_set.first_empty] = *tuple;                 \
+    olsr_##Name##_set_declare_used_(Name##_set.first_empty);            \
                                                                         \
     for (int i = Name##_set.first_empty + 1; i < MaxSize; i++)          \
     {                                                                   \
