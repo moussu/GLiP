@@ -31,6 +31,15 @@
 # define SET_FOREACH(Name, Var, Code)                   \
   SET_FOREACH_(Name, Name, Var, Code)
 
+# define SET_FOREACH_AUTOREMOVE(Name, Var, TimeField, Code)     \
+  SET_FOREACH_(Name, Name, Var,                                 \
+    if (Var->TimeField >= olsr_get_current_time())              \
+    {                                                           \
+      olsr_##Name##_set_delete(__i_##Name);                     \
+      continue;                                                 \
+    }                                                           \
+    Code)
+
 # define SET_APPLY_(Name, Tuple, Action)                \
   SET_FOREACH_(Name, Tuple, __tuple, (*(Action))(__tuple))
 

@@ -15,10 +15,13 @@ typedef struct
 } olsr_topology_tuple_t;
 
 SET_DECLARE(topology, TOPOLOGY_SET_MAX_SIZE)
-SET_SYNCHRO_DECLARE(topology)
 SET_DEFAULT_BINDINGS(topology)
-# define FOREACH_TOPOLOGY(Var, Code)            \
+
+# define FOREACH_TOPOLOGY_CREW(Var, Code)       \
   SET_FOREACH(topology, Var, Code)
+
+# define FOREACH_TOPOLOGY_EREW(Var, Code)               \
+  SET_FOREACH_AUTOREMOVE(topology, Var, T_time, Code)
 
 void olsr_topology_tuple_init(olsr_topology_tuple_t* tuple);
 

@@ -85,7 +85,7 @@ void
 olsr_mpr_compute_N2()
 {
   olsr_N2_set_empty_();
-  FOREACH_NEIGHBOR2(n2,
+  FOREACH_NEIGHBOR2_EREW(n2,
     FOREACH_N(n,
       if (n->N_neighbor_main_addr == n2->N_neighbor_main_addr)
       {
@@ -98,7 +98,7 @@ int
 olsr_mpr_D(address_t y)
 {
   int D = 0;
-  FOREACH_NEIGHBOR2(n2,
+  FOREACH_NEIGHBOR2_EREW(n2,
     bool is_in_n = FALSE;
     if (n2->N_neighbor_main_addr != y)
       continue;

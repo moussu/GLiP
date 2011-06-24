@@ -1,7 +1,7 @@
 #include <string.h>
 #include "olsr_ms_set.h"
 
-SET_SYNCHRO_DEFAULT_IMPLEMENT(ms, MS_SET_MAX_SIZE, MS_time)
+SET_IMPLEMENT(ms, MS_SET_MAX_SIZE)
 
 void
 olsr_ms_tuple_init(olsr_ms_tuple_t* tuple)
@@ -13,7 +13,7 @@ olsr_ms_tuple_init(olsr_ms_tuple_t* tuple)
 bool
 olsr_is_ms(address_t addr)
 {
-  FOREACH_MS(tuple,
+  FOREACH_MS_EREW(tuple,
     if (tuple->MS_time < olsr_get_current_time())
     {
       olsr_ms_set_delete(__i_ms);

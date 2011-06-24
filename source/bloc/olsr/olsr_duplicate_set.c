@@ -1,7 +1,7 @@
 #include "olsr_duplicate_set.h"
 #include "olsr_state.h"
 
-SET_SYNCHRO_DEFAULT_IMPLEMENT(duplicate, DUPLICATE_SET_MAX_SIZE, time)
+SET_IMPLEMENT(duplicate, DUPLICATE_SET_MAX_SIZE)
 
 void
 olsr_duplicate_tuple_init(olsr_duplicate_tuple_t* t)
@@ -18,13 +18,12 @@ olsr_already_processed(address_t addr, seq_num_t sn)
 {
   bool already_processed = FALSE;
 
-  FOREACH_DUPLICATE(tuple,
+  FOREACH_DUPLICATE_EREW(tuple,
     if (tuple->addr == addr && tuple->sn == sn)
     {
       already_processed = TRUE;
       break;
-    }
-  )
+    });
 
   return already_processed;
 }
@@ -34,7 +33,7 @@ olsr_already_forwarded(address_t addr, seq_num_t sn, interface_t iface)
 {
   bool already_forwarded = FALSE;
 
-  FOREACH_DUPLICATE(tuple,
+  FOREACH_DUPLICATE_EREW(tuple,
     if (tuple->addr == addr
         && tuple->sn == sn)
     {
@@ -60,7 +59,7 @@ olsr_has_to_be_forwarded(address_t addr, seq_num_t sn, interface_t iface, int* n
 {
   bool forwarding = TRUE;
 
-  FOREACH_DUPLICATE(tuple,
+  FOREACH_DUPLICATE_EREW(tuple,
     if (tuple->addr == addr
         && tuple->sn == sn)
     {

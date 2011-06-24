@@ -7,7 +7,7 @@
 #include "olsr_send.h"
 #include "olsr_state.h"
 
-SET_SYNCHRO_IMPLEMENT(link, LINK_SET_MAX_SIZE)
+SET_IMPLEMENT(link, LINK_SET_MAX_SIZE)
 
 /*
      -    The L_SYM_time field of a link tuple expires.  This is
@@ -18,7 +18,7 @@ SET_SYNCHRO_IMPLEMENT(link, LINK_SET_MAX_SIZE)
           observed as a neighborhood change).
  */
 
-static void
+void
 olsr_link_set_expire(olsr_link_tuple_t* tuple)
 {
   int pos = -1;
@@ -29,7 +29,7 @@ olsr_link_set_expire(olsr_link_tuple_t* tuple)
   {
     bool remove = TRUE;
 
-    FOREACH_LINK(l,
+    FOREACH_LINK_EREW(l,
       if (l == tuple)
         continue;
       if (olsr_iface_to_main_address(l->L_neighbor_iface_addr)
@@ -41,29 +41,6 @@ olsr_link_set_expire(olsr_link_tuple_t* tuple)
 
     if (remove)
       olsr_neighbor_set_delete(pos);
-  }
-}
-
-void
-olsr_link_set_task(void* pvParameters)
-{
-  portTickType xLastWakeTime;
-  for (;;)
-  {
-    vTaskDelayUntil(&xLastWakeTime, SET_REFRESH_TIME_MS);
-
-    if (link_set.n_tuples == 0)
-      continue;
-
-    SET_MUTEX_TAKE(link);
-
-    FOREACH_LINK(l,
-      if (l->L_time >= olsr_get_current_time())
-        olsr_link_set_delete(__i_link);
-      else if (l->L_SYM_time >= olsr_get_current_time())
-        olsr_link_set_expire(l)); // FIXME: delete too ?
-
-    SET_MUTEX_GIVE(link);
   }
 }
 
@@ -141,7 +118,7 @@ void olsr_link_set_delete(int i)
   address_t main_address =
     olsr_iface_to_main_address(tuple->L_neighbor_iface_addr);
 
-  FOREACH_LINK(link,
+  FOREACH_LINK_EREW(link,
     if (olsr_iface_to_main_address(link->L_neighbor_iface_addr)
         == main_address)
       remove_neighbor = FALSE);
@@ -177,7 +154,7 @@ olsr_link_set_updated(const olsr_link_tuple_t* lt)
 
   nt->N_status = NOT_SYM;
 
-  FOREACH_LINK(link,
+  FOREACH_LINK_EREW(link,
     if (olsr_iface_to_main_address(link->L_neighbor_iface_addr)
         == nt->N_neighbor_main_addr
         && link->L_SYM_time >= olsr_get_current_time())
@@ -234,7 +211,7 @@ olsr_link_set_associated_neighbor(const olsr_link_tuple_t* tuple, int* pos)
 olsr_link_tuple_t*
 olsr_link_set_has(address_t neighbor_iface_addr)
 {
-  FOREACH_LINK(t,
+  FOREACH_LINK_EREW(t,
     if (t->L_neighbor_iface_addr == neighbor_iface_addr)
       return t
     )
@@ -245,7 +222,7 @@ bool
 olsr_is_iface_neighbor(address_t iface_address,
                        address_t neighbor_main_address)
 {
-  FOREACH_LINK(link,
+  FOREACH_LINK_EREW(link,
     if (link->L_local_iface_addr == iface_address
         && neighbor_main_address
         == olsr_iface_to_main_address(link->L_neighbor_iface_addr))

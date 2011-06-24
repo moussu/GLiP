@@ -1,7 +1,7 @@
 #include "olsr_mpr_set.h"
 #include "olsr_neighbor2_set.h"
 
-SET_SYNCHRO_DEFAULT_IMPLEMENT(neighbor2, NEIGHBOR2_SET_MAX_SIZE, N_time)
+SET_IMPLEMENT(neighbor2, NEIGHBOR2_SET_MAX_SIZE)
 
 void
 olsr_neighbor2_set_delete(int i)

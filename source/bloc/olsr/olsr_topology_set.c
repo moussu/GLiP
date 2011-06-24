@@ -1,6 +1,6 @@
 #include "olsr_topology_set.h"
 
-SET_SYNCHRO_DEFAULT_IMPLEMENT(topology, TOPOLOGY_SET_MAX_SIZE, T_time)
+SET_IMPLEMENT(topology, TOPOLOGY_SET_MAX_SIZE)
 
 void
 olsr_topology_tuple_init(olsr_topology_tuple_t* tuple)

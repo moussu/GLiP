@@ -15,9 +15,12 @@ typedef struct
 
 SET_DECLARE(ms, MS_SET_MAX_SIZE)
 SET_DEFAULT_BINDINGS(ms)
-SET_SYNCHRO_DECLARE(ms)
-# define FOREACH_MS(Var, Code)                  \
+
+# define FOREACH_MS_CREW(Var, Code)             \
   SET_FOREACH(ms, Var, Code)
+
+# define FOREACH_MS_EREW(Var, Code)                     \
+  SET_FOREACH_AUTOREMOVE(ms, Var, MS_time, Code)
 
 void olsr_ms_tuple_init(olsr_ms_tuple_t* tuple);
 bool olsr_is_ms(address_t addr);
