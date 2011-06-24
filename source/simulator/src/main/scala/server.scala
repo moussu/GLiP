@@ -33,14 +33,17 @@ package simulator.ether {
         packetCmd match {
           case 'p' => {
             val answerPort = new String(packetData).toInt
+            val receivePort = packet.getPort
             val block = pool.addBlock()
             val msg = "p" + block.id.toString
 
-            println("New client {port:" + answerPort +
-                    ", block:" + block + "}")
+            println("New client {" +
+                    "answerPort:"  + answerPort  + ", " +
+                    "receivePort:" + receivePort + ", " +
+                    "block:"       + block       + "}")
 
-            portsToBlocks = portsToBlocks.updated(packet.getPort, block)
-            blocksToPorts = blocksToPorts.updated(block, answerPort)
+            portsToBlocks = portsToBlocks.updated(receivePort, block)
+            blocksToPorts = blocksToPorts.updated(block,       answerPort)
 
             println("Sending: " + msg);
 
