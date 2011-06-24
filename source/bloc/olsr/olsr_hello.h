@@ -72,5 +72,7 @@ void olsr_hello_task(void* pvParameters);
 void olsr_process_hello_message(packet_byte_t* message, int size,
                                 interface_t iface);
 void olsr_hello_force_send();
+void olsr_hello_mutex_take();
+void olsr_hello_mutex_give();
 
 #endif
