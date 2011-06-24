@@ -91,4 +91,15 @@ typedef enum
   WILL_ALWAYS  = 7,
 } willingness_t;
 
+# ifdef DEBUG
+# include <stm32f10x.h>
+const char* olsr_willingness_str(willingness_t w);
+const char* olsr_link_status_str(link_status_t s);
+inline const char*
+olsr_bool_str(bool b)
+{
+  return b ? "1" : "0";
+}
+# endif
+
 #endif

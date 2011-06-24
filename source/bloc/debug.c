@@ -21,6 +21,24 @@ textcolor(color_t color)
     case RED:
       printf("[33;01;31m");
       break;
+    case PURPLE:
+      printf("[33;01;34m");
+      break;
+    case LRED:
+      printf("[33;00;31m");
+      break;
+    case LGREEN:
+      printf("[33;00;32m");
+      break;
+    case LBLUE:
+      printf("[33;00;36m");
+      break;
+    case LYELLOW:
+      printf("[33;00;33m");
+      break;
+    case LPURPLE:
+      printf("[33;00;34m");
+      break;
     default:
     case WHITE:
       printf("[0m");

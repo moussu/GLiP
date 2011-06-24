@@ -31,4 +31,8 @@ SET_DEFAULT_DECLARE_EMPTY(neighbor2)
 void olsr_neighbor2_tuple_init(olsr_neighbor2_tuple_t* tuple);
 void olsr_neighbor2_set_delete(int i);
 
+# ifdef DEBUG
+void olsr_neighbor2_set_print();
+# endif
+
 #endif

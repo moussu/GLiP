@@ -37,4 +37,8 @@ neighbor_type_t olsr_get_neighbor_type(olsr_neighbor_tuple_t* tuple);
 bool olsr_is_symetric_neighbor(address_t addr);
 void olsr_advertise_neighbors(olsr_message_t* hello_message);
 
+# ifdef DEBUG
+void olsr_neighbor_set_print();
+# endif
+
 #endif

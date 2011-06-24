@@ -14,3 +14,7 @@ CFLAGS += $(addprefix -I,$(DIRS))
 VPATH += $(DIRS)
 
 LDFLAGS += -lpthread
+
+debug.h: dashes.h
+dashes.h: dashes.py
+	./$< 20 > $@

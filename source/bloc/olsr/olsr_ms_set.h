@@ -25,4 +25,8 @@ SET_DEFAULT_BINDINGS(ms)
 void olsr_ms_tuple_init(olsr_ms_tuple_t* tuple);
 bool olsr_is_ms(address_t addr);
 
+# ifdef DEBUG
+void olsr_ms_set_print();
+# endif
+
 #endif
