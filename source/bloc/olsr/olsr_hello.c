@@ -1,5 +1,6 @@
 #include <FreeRTOS.h>
 #include <task.h>
+#include <semphr.h>
 
 #include "utils/max.h"
 #include "olsr_hello.h"
@@ -7,11 +8,14 @@
 #include "olsr_constants.h"
 #include "olsr_link_set.h"
 #include "olsr_neighbor2_set.h"
+#include "olsr_mpr_set.h"
 #include "olsr_ms_set.h"
 #include "olsr_state.h"
+#include "olsr_send.h"
 #include "olsr_time.h"
 
-/*static xSemaphoreHandle hello_mutex;
+static xSemaphoreHandle process_generate_mutex;
+/*static xSemaphoreHandle force_send_mutex;
   static bool force_send = FALSE;*/
 static void olsr_hello_task1(void* pvParameters);
 //static void olsr_hello_task2(void* pvParameters);
@@ -20,7 +24,8 @@ static void olsr_hello_task1(void* pvParameters);
 void
 olsr_hello_init()
 {
-  //hello_mutex = xSemaphoreCreateMutex();
+  //force_send_mutex = xSemaphoreCreateMutex();
+  process_generate_mutex = xSemaphoreCreateMutex();
   xTaskCreate(olsr_hello_task1,
               (signed portCHAR*) "helloTask1",
               configMINIMAL_STACK_SIZE, NULL,
@@ -29,6 +34,18 @@ olsr_hello_init()
     (signed portCHAR*) "helloTask2",
     configMINIMAL_STACK_SIZE, NULL,
     tskIDLE_PRIORITY, NULL);*/
+}
+
+void
+olsr_hello_mutex_take()
+{
+  xSemaphoreTake(process_generate_mutex, portMAX_DELAY);
+}
+
+void
+olsr_hello_mutex_give()
+{
+  xSemaphoreGive(process_generate_mutex);
 }
 
 /*
@@ -93,7 +110,7 @@ olsr_process_hello_message(packet_byte_t* message, int size,
   olsr_message_hdr_t* header = (olsr_message_hdr_t*)message;
   message += sizeof(olsr_message_hdr_t);
   olsr_time_t Vtime = olsr_deserialize_time(header->Vtime);
-  olsr_link_tuple_t* tuple = olsr_link_set_has(header->addr);
+  olsr_link_tuple_t* tuple = NULL;
   bool inserted = FALSE;
   olsr_hello_message_hdr_t* hello_header =
     (olsr_hello_message_hdr_t*)message;
@@ -103,7 +120,11 @@ olsr_process_hello_message(packet_byte_t* message, int size,
               header->size, header->sn);
   DEBUG_INC;
 
+  olsr_hello_mutex_take();
+
   // Link set:
+
+  tuple = olsr_link_set_has(header->addr);
 
   if (tuple == NULL)
   {
@@ -290,6 +311,8 @@ olsr_process_hello_message(packet_byte_t* message, int size,
     }
   }
 
+  olsr_hello_mutex_give();
+
   DEBUG_DEC;
 }
 
@@ -308,6 +331,96 @@ olsr_hello_send_ifaces()
 }
 
 void
+olsr_send_hello(interface_t iface)
+{
+  // use the same willingness for everyone!
+  const willingness_t willingness = state.willingness;
+  address_t iface_address = state.iface_addresses[iface];
+  link_type_t link_type;
+  neighbor_type_t neighbor_type;
+
+  olsr_message_t hello_message;
+
+  hello_message.header.type = HELLO_MESSAGE;
+  hello_message.header.Vtime = olsr_serialize_time(
+    olsr_seconds_to_time(NEIGHB_HOLD_TIME_S)
+    );
+  hello_message.header.ttl = 1;
+  hello_message.header.size = sizeof(olsr_message_hdr_t);
+  hello_message.content_size = 0;
+
+  olsr_hello_message_hdr_t hello_header;
+  hello_header.Htime = olsr_serialize_time(
+    olsr_seconds_to_time(HELLO_INTERVAL_S));
+  hello_header.willingness = willingness;
+
+  olsr_message_append(&hello_message, &hello_header,
+                      sizeof(olsr_hello_message_hdr_t));
+
+  olsr_link_message_hdr_t link_header;
+  link_header.size = sizeof(olsr_link_message_hdr_t) + sizeof(address_t);
+  DEBUG_HELLO("hello message size (headers only) is %d", hello_message.header.size);
+
+#ifdef DEBUG
+  int i = 0;
+#endif
+  DEBUG_HELLO("packing link tuples");
+  DEBUG_HELLO("link set size is %d", link_set.n_tuples);
+  DEBUG_INC;
+
+  olsr_hello_mutex_take();
+
+  FOREACH_LINK(t,
+    if (t->L_local_iface_addr != iface_address)
+      continue;
+
+    if (t->L_SYM_time >= olsr_get_current_time())
+      link_type = SYM_LINK;
+    else if (t->L_ASYM_time >= olsr_get_current_time())
+      link_type = ASYM_LINK;
+    else
+      link_type = LOST_LINK;
+
+    address_t neighbor_main_address =
+      olsr_iface_to_main_address(t->L_neighbor_iface_addr);
+
+    // Mark neighbors as advertised, grab neighbor_type:
+    olsr_neighbor_set_advertised(neighbor_main_address,
+                                 &neighbor_type);
+
+    // If is MPR, alter neighbor_type:
+    if (olsr_is_mpr(neighbor_main_address))
+      neighbor_type = MPR_NEIGH;
+
+    // Here I'm assuming that if the neighbor_main_address is not in
+    // the MPR set it WILL be in the neighbor set...
+
+    DEBUG_HELLO("tuple [n:%d]", i++);
+
+    link_header.link_code = olsr_link_code(link_type, neighbor_type);
+    olsr_message_append(&hello_message, &link_header,
+                        sizeof(olsr_link_message_hdr_t));
+    olsr_message_append(&hello_message, &t->L_neighbor_iface_addr,
+                        sizeof(address_t)));
+
+  DEBUG_DEC;
+
+  DEBUG_HELLO("neighbor set size is %d,", neighbor_set.n_tuples);
+  DEBUG_HELLO("append non advertised neighbors with link type UNSPEC_LINK");
+  DEBUG_INC;
+
+  olsr_advertise_neighbors(&hello_message);
+
+  DEBUG_DEC;
+
+  DEBUG_HELLO("hello message size (headers + content) is %d", hello_message.header.size);
+
+  olsr_hello_mutex_give();
+
+  olsr_send_message(&hello_message, iface);
+}
+
+void
 olsr_hello_force_send()
 {
   // FIXME: implement.
@@ -321,10 +434,10 @@ olsr_hello_task1(void* pvParameters)
 
   for (;;)
   {
-    //xSemaphoreTake(hello_mutex, portMAX_DELAY);
+    //xSemaphoreTake(force_send_mutex, portMAX_DELAY);
     olsr_hello_send_ifaces();
 
-    //xSemaphoreGive(hello_mutex);
+    //xSemaphoreGive(force_send_mutex);
 
     vTaskDelayUntil(&xLastWakeTime,
                     HELLO_INTERVAL_S * 1000 - MAXJITTER_MS);
@@ -338,12 +451,12 @@ olsr_hello_task2(void* pvParameters)
 
   for (;;)
   {
-    xSemaphoreTake(hello_mutex, portMAX_DELAY);
+    xSemaphoreTake(force_send_mutex, portMAX_DELAY);
 
     if (force_send)
       olsr_hello_send_ifaces();
 
-    xSemaphoreGive(hello_mutex);
+    xSemaphoreGive(force_send_mutex);
 
     vTaskDelayUntil(&xLastWakeTime, 100);
   }
