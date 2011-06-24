@@ -104,9 +104,16 @@ olsr_advertise_neighbors(olsr_message_t* hello_message)
   olsr_link_message_hdr_t link_header;
   link_header.size = sizeof(olsr_link_message_hdr_t) + sizeof(address_t);
 
+#ifdef DEBUG
+  int i = 0;
+#endif
+
   FOREACH_NEIGHBOR(tuple,
     if (tuple->advertised)
       continue;
+
+    DEBUG_HELLO("tuple [n:%d]", i++);
+
     neighbor_type = olsr_get_neighbor_type(tuple);
     link_type = UNSPEC_LINK;
     link_header.link_code = olsr_link_code(link_type, neighbor_type);
