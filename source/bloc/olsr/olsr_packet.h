@@ -61,6 +61,6 @@ typedef struct
   int content_size;
 } olsr_packet_t;
 
-void olsr_process_packet(packet_byte_t* packet, int length, interface_t iface);
+void olsr_process_packet(olsr_packet_t* packet, interface_t iface);
 
 #endif

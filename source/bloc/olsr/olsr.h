@@ -7,5 +7,6 @@
 # include "olsr_types.h"
 
 void olsr_init(address_t address);
+void olsr_receive_callback(int iSocket, void* pvContext);
 
 #endif

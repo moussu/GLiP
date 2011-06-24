@@ -50,7 +50,7 @@
 // 18.9.  Misc. Constants:
 # define TC_REDUNDANCY 0
 # define MPR_COVERAGE  1
-# define MAXJITTER_MS   (1000 * HELLO_INTERVAL_S / 4)
+# define MAXJITTER_MS  (1000 * HELLO_INTERVAL_S / 4)
 
 // 18.7.  Link Hysteresis:
 # define HYST_THRESHOLD_HIGH 0.8f

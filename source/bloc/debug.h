@@ -18,8 +18,12 @@ extern int indent;
 void textcolor(color_t color);
 
 # ifdef DEBUG
+#  define DEBUG_SET_ID(Id)                           \
+  debug = Id
+
 #  define DEBUG_PRINT(S, Color, ...)                 \
   {                                                  \
+    printf("[%d] ", debug);                          \
     textcolor(Color);                                \
     for (int __i__ = 0; __i__ < indent; __i__++)     \
       printf("    ");                                \
@@ -46,6 +50,7 @@ void textcolor(color_t color);
   DEBUG_PRINT(S, RED, ##__VA_ARGS__)
 
 # else
+#  define DEBUG_SET_ID(Id)
 #  define DEBUG_PRINT(S, ...)
 #  define DEBUG_SERVER(S, ...)
 #  define DEBUG_SEND(S, ...)

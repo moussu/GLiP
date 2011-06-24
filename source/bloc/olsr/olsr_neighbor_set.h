@@ -7,7 +7,7 @@
 # include "olsr_message.h"
 # include "olsr_set.h"
 
-# define NEIGHBOR_SET_MAX_SIZE 10
+# define NEIGHBOR_SET_MAX_SIZE 100
 typedef struct
 {
   address_t N_neighbor_main_addr;

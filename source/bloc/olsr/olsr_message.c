@@ -14,6 +14,7 @@ olsr_message_append(olsr_message_t* msg, void* data, int size_bytes)
     return;
 
   memcpy(msg->content + msg->content_size, data, size_bytes);
+  msg->header.size += size_bytes;
   msg->content_size += size_bytes;
 }
 
