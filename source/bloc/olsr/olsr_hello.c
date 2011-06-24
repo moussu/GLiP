@@ -253,7 +253,7 @@ olsr_process_hello_message(packet_byte_t* message, int size,
         }
         else // NOT_NEIGH
         {
-          FOREACH_NEIGHBOR2(n,
+          FOREACH_NEIGHBOR2_EREW(n,
             if (n->N_neighbor_main_addr == header->addr
                 && n->N_2hop_addr == addr)
               olsr_neighbor2_set_delete(__i_neighbor2));
@@ -290,7 +290,7 @@ olsr_process_hello_message(packet_byte_t* message, int size,
             if (state.iface_addresses[i] == addr)
             {
               olsr_ms_tuple_t* ms = NULL;
-              FOREACH_MS(m,
+              FOREACH_MS_EREW(m,
                 if (m->MS_main_addr == header->addr)
                 {
                   ms = m;
@@ -370,7 +370,7 @@ olsr_send_hello(interface_t iface)
 
   olsr_hello_mutex_take();
 
-  FOREACH_LINK(t,
+  FOREACH_LINK_EREW(t,
     if (t->L_local_iface_addr != iface_address)
       continue;
 

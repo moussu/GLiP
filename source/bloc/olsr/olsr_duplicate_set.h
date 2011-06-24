@@ -13,17 +13,20 @@ typedef struct
 {
   address_t   addr;
   seq_num_t   sn;
-  olsr_time_t      time;
+  olsr_time_t time;
   interface_t ifaces[4];
   uint8_t     n_ifaces;
   bool        retrans;
 } olsr_duplicate_tuple_t;
 
 SET_DECLARE(duplicate, DUPLICATE_SET_MAX_SIZE)
-SET_SYNCHRO_DECLARE(duplicate)
 SET_DEFAULT_BINDINGS(duplicate)
-# define FOREACH_DUPLICATE(Var, Code)                   \
+
+# define FOREACH_DUPLICATE_CREW(Var, Code)      \
   SET_FOREACH(duplicate, Var, Code)
+
+# define FOREACH_DUPLICATE_EREW(Var, Code)              \
+  SET_FOREACH_AUTOREMOVE(duplicate, Var, time, Code)
 
 void olsr_duplicate_tuple_init(olsr_duplicate_tuple_t* t);
 bool olsr_already_processed(address_t addr, seq_num_t sn);

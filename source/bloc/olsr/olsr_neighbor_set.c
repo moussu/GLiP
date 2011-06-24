@@ -27,14 +27,14 @@ olsr_neighbor_set_expire(const olsr_neighbor_tuple_t* tuple)
    */
 
   bool deleted = FALSE;
-  FOREACH_NEIGHBOR2(n2,
+  FOREACH_NEIGHBOR2_EREW(n2,
     if (n2->N_neighbor_main_addr == tuple->N_neighbor_main_addr)
     {
       olsr_neighbor2_set_delete_(__i_neighbor2);
       deleted = TRUE;
     });
 
-  FOREACH_MS(ms,
+  FOREACH_MS_EREW(ms,
     if (ms->MS_main_addr == tuple->N_neighbor_main_addr)
       olsr_ms_set_delete(__i_ms));
 
