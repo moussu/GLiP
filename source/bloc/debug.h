@@ -56,8 +56,11 @@ void textcolor(color_t color);
 #  define DEBUG_RECEIVE(S, ...)                 \
   DEBUG_PRINT(S, LGREEN, ##__VA_ARGS__)
 
-#  define DEBUG_HELLO(S, ...)                    \
+#  define DEBUG_HELLO(S, ...)                   \
   DEBUG_PRINT(S, LRED, ##__VA_ARGS__)
+
+#  define DEBUG_SET(S, ...)                     \
+  DEBUG_PRINT(S, LPURPLE, ##__VA_ARGS__)
 
 #  define DEBUG_LINK(S, ...)                    \
   DEBUG_PRINT(S, PURPLE, ##__VA_ARGS__)
