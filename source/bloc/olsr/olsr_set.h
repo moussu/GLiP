@@ -2,11 +2,13 @@
 # define SET_H
 
 # include <stm32f10x.h>
+# include <stdlib.h>
 # include <string.h>
 # include <FreeRTOS.h>
 # include <semphr.h>
 # include <task.h>
 # include "olsr_time.h"
+# include "utils/max.h"
 
 # define SET_FOREACH___(Name, Code)                     \
   for (int __i_##Name = 0;                              \
@@ -71,8 +73,9 @@
     int n_tuples;                                                       \
     int max_size;                                                       \
     int first_empty;                                                    \
+    int bitmap_size;                                                    \
     bool full;                                                          \
-    uint8_t bitmap[MaxSize / 8];                                        \
+    uint8_t bitmap[DIVUP(MaxSize, 8)];                                  \
     olsr_##Tuple##_tuple_t tuples[MaxSize];                             \
   } olsr_##Name##_set_t;                                                \
                                                                         \
@@ -117,9 +120,11 @@
     Name##_set.max_size = MaxSize;                                      \
     Name##_set.full = FALSE;                                            \
     Name##_set.n_tuples = 0;                                            \
+    Name##_set.bitmap_size = DIVUP(MaxSize, 8);                         \
     Name##_set.first_empty = 0;                                         \
-    memset(Name##_set.bitmap, 0, MaxSize / 8);                          \
-    memset(Name##_set.tuples, 0, MaxSize * sizeof(olsr_##Tuple##_tuple_t)); \
+    memset(Name##_set.bitmap, 0, Name##_set.bitmap_size);               \
+    memset(Name##_set.tuples, 0,                                        \
+           MaxSize * sizeof(olsr_##Tuple##_tuple_t));                   \
     SET_FOREACH_(Name, Tuple, tuple, olsr_##Tuple##_tuple_init(tuple)); \
     __VA_ARGS__                                                         \
   }                                                                     \
@@ -132,27 +137,36 @@
   olsr_##Tuple##_tuple_t*                                               \
   olsr_##Name##_set_insert_(const olsr_##Tuple##_tuple_t* tuple)        \
   {                                                                     \
+    const int old = Name##_set.first_empty;                             \
     if (Name##_set.full)                                                \
-      return NULL;                                                      \
-                                                                        \
-    Name##_set.tuples[Name##_set.first_empty] = *tuple;                 \
-    olsr_##Name##_set_declare_used_(Name##_set.first_empty);            \
-                                                                        \
-    for (int i = Name##_set.first_empty + 1; i < MaxSize; i++)          \
     {                                                                   \
-      if (olsr_##Name##_set_is_empty_(i))                               \
-      {                                                                 \
-        Name##_set.first_empty = i;                                     \
-        break;                                                          \
-      }                                                                 \
+      DEBUG_SET(#Name " set full! [max_size:%d]", Name##_set.max_size); \
+      exit(1);                                                          \
+      return NULL;                                                      \
     }                                                                   \
                                                                         \
+    Name##_set.tuples[old] = *tuple;                                    \
+    olsr_##Name##_set_declare_used_(old);                               \
     Name##_set.n_tuples++;                                              \
                                                                         \
     if (Name##_set.n_tuples == MaxSize)                                 \
+    {                                                                   \
+      Name##_set.first_empty = MaxSize;                                 \
       Name##_set.full = TRUE;                                           \
+    }                                                                   \
+    else                                                                \
+    {                                                                   \
+      for (int i = Name##_set.first_empty + 1; i < MaxSize; i++)        \
+      {                                                                 \
+        if (olsr_##Name##_set_is_empty_(i))                             \
+        {                                                               \
+          Name##_set.first_empty = i;                                   \
+          break;                                                        \
+        }                                                               \
+      }                                                                 \
+    }                                                                   \
                                                                         \
-    return Name##_set.tuples + Name##_set.first_empty;                  \
+    return Name##_set.tuples + old;                                     \
   }                                                                     \
                                                                         \
   void                                                                  \
