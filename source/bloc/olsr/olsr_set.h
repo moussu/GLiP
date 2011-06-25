@@ -35,7 +35,7 @@
 
 # define SET_FOREACH_AUTOREMOVE(Name, Var, TimeField, Code)     \
   SET_FOREACH_(Name, Name, Var,                                 \
-    if (Var->TimeField >= olsr_get_current_time())              \
+    if (Var->TimeField < olsr_get_current_time())               \
     {                                                           \
       olsr_##Name##_set_delete(__i_##Name);                     \
       continue;                                                 \
