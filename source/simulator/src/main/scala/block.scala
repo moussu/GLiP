@@ -13,27 +13,27 @@ package simulator.view {
       def fromChar(c: Char): Value = {
         c match {
           case 'N' => Dir.N
+          case 'W' => Dir.W
           case 'S' => Dir.S
           case 'E' => Dir.E
-          case 'W' => Dir.W
         }
       }
 
       def fromInt(n: Int): Value = {
         n match {
           case 0 => Dir.N
-          case 1 => Dir.S
-          case 2 => Dir.E
-          case 3 => Dir.W
+          case 1 => Dir.W
+          case 2 => Dir.S
+          case 3 => Dir.E
         }
       }
 
       def toInt(d: Value): Int = {
         d match {
           case Dir.N => 0
-          case Dir.S => 1
-          case Dir.E => 2
-          case Dir.W => 3
+          case Dir.W => 1
+          case Dir.S => 2
+          case Dir.E => 3
         }
       }
     }
@@ -72,6 +72,8 @@ package simulator.view {
     def startY(): Int = y + relativeStartY
     def stopX():  Int = x + relativeStopX
     def stopY():  Int = y + relativeStopY
+    def addr() = id * 4
+    def addr(iface: Dir) = id * 4 + Dir.toInt(iface)
 
     override def toString() = {
       "[" + id.toString + "]"
@@ -149,23 +151,27 @@ package simulator.view {
       if (detailed) {
         context.fill(255, 255, 255, 200)
 
-        context.textSize(30)
+        context.textSize(20)
         context.pushMatrix()
         context.rotate(-angle * PI / 180.f)
-        context.scale(0.8f)
+        context.scale(0.7f, 0.8f)
         for ((d, p) <- getIr()) {
-          val text = d.toString
+          val text = d.toString + "(" + addr(d) + ")"
           val offsetX = context.textWidth(text) / 2
-          val offsetY = 12
+          val offsetY = 10
           context.text(text, p._1 - x - offsetX,
                              p._2 - y - offsetY, 100, 100)
         }
         context.popMatrix()
 
         val text = if (id < 10) "0" + id else id.toString
-        context.textSize(70)
+        val address = "0x" + addr().toString
+        context.textSize(45)
         context.text(text, -context.textWidth(text) / 2,
-                     -35, width, height)
+                     -30, width, height)
+        context.textSize(25)
+        context.text(address, -context.textWidth(address) / 2,
+                     5, width, height)
       }
 
       context.popMatrix()

@@ -17,6 +17,18 @@ olsr_neighbor_tuple_init(olsr_neighbor_tuple_t* tuple)
   tuple->advertised = FALSE;
 }
 
+olsr_neighbor_tuple_t*
+olsr_neighbor_set_insert(const olsr_neighbor_tuple_t* t)
+{
+  olsr_neighbor_tuple_t* tuple =
+    olsr_neighbor_set_insert_(t);
+
+  if (!olsr_mpr_set_is_recomputing())
+    olsr_mpr_set_recompute();
+
+  return tuple;
+}
+
 static void
 olsr_neighbor_set_expire(const olsr_neighbor_tuple_t* tuple)
 {
@@ -27,7 +39,7 @@ olsr_neighbor_set_expire(const olsr_neighbor_tuple_t* tuple)
    */
 
   bool deleted = FALSE;
-  FOREACH_NEIGHBOR2_EREW(n2,
+  FOREACH_NEIGHBOR2_CREW(n2,
     if (n2->N_neighbor_main_addr == tuple->N_neighbor_main_addr)
     {
       olsr_neighbor2_set_delete_(__i_neighbor2);
@@ -40,7 +52,8 @@ olsr_neighbor_set_expire(const olsr_neighbor_tuple_t* tuple)
 
   // Optimisation we use olsr_neighbor2_delete_ and recompute the mpr
   // set only after. See olsr_neighbor2_set_delete.
-  if (deleted)
+
+  if (deleted && !olsr_mpr_set_is_recomputing())
     olsr_mpr_set_recompute();
 }
 
@@ -88,8 +101,12 @@ olsr_get_neighbor_type(olsr_neighbor_tuple_t* tuple)
 bool
 olsr_is_symetric_neighbor(address_t addr)
 {
+  // Ensure it is a main address:
+  address_t main_addr =
+    olsr_iface_to_main_address(addr);
+
   FOREACH_NEIGHBOR(tuple,
-    if (tuple->N_neighbor_main_addr == addr
+    if (tuple->N_neighbor_main_addr == main_addr
       && tuple->N_status == SYM)
       return TRUE)
 
@@ -104,19 +121,21 @@ olsr_advertise_neighbors(olsr_message_t* hello_message)
   olsr_link_message_hdr_t link_header;
   link_header.size = sizeof(olsr_link_message_hdr_t) + sizeof(address_t);
 
-#ifdef DEBUG
-  int i = 0;
-#endif
-
   FOREACH_NEIGHBOR(tuple,
     if (tuple->advertised)
       continue;
 
-    DEBUG_HELLO("tuple [n:%d]", i++);
-
     neighbor_type = olsr_get_neighbor_type(tuple);
     link_type = UNSPEC_LINK;
     link_header.link_code = olsr_link_code(link_type, neighbor_type);
+
+    DEBUG_HELLO("appending [size:%d, nt:%s, lt:%s, lc:0x%x, iface_addr:%d]",
+                link_header.size,
+                olsr_neighbor_type_str(neighbor_type),
+                olsr_link_type_str(link_type),
+                link_header.link_code,
+                tuple->N_neighbor_main_addr);
+
     olsr_message_append(hello_message, &link_header,
                         sizeof(olsr_link_message_hdr_t));
     olsr_message_append(hello_message, &tuple->N_neighbor_main_addr,

@@ -1,5 +1,6 @@
 #include "olsr_mpr_set.h"
 #include "olsr_neighbor2_set.h"
+#include "olsr_state.h"
 
 SET_IMPLEMENT(neighbor2, NEIGHBOR2_SET_MAX_SIZE)
 
@@ -19,7 +20,8 @@ olsr_neighbor2_set_delete(int i)
           neighborhood is detected.
    */
 
-  olsr_mpr_set_recompute();
+  if (!olsr_mpr_set_is_recomputing())
+    olsr_mpr_set_recompute();
 }
 
 
@@ -29,6 +31,34 @@ olsr_neighbor2_tuple_init(olsr_neighbor2_tuple_t* tuple)
   tuple->N_neighbor_main_addr = 0;
   tuple->N_2hop_addr = 0;
   tuple->N_time = 0;
+}
+
+olsr_neighbor2_tuple_t*
+olsr_neighbor2_set_insert_or_update(const olsr_neighbor2_tuple_t* tuple)
+{
+  if (tuple->N_2hop_addr == state.address)
+    return NULL;
+
+  FOREACH_NEIGHBOR2_CREW(
+    t,
+    if (t->N_neighbor_main_addr == tuple->N_neighbor_main_addr
+        && t->N_2hop_addr == tuple->N_2hop_addr)
+    {
+      t->N_time = tuple->N_time;
+
+      if (!olsr_mpr_set_is_recomputing())
+        olsr_mpr_set_recompute();
+
+      return t;
+    });
+
+  olsr_neighbor2_tuple_t* t =
+    olsr_neighbor2_set_insert_(tuple);
+
+  if (!olsr_mpr_set_is_recomputing())
+    olsr_mpr_set_recompute();
+
+  return t;
 }
 
 #ifdef DEBUG

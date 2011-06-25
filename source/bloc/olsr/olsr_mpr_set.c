@@ -7,37 +7,24 @@
 #include "olsr_state.h"
 
 SET_IMPLEMENT(mpr, MPR_SET_MAX_SIZE)
-
-typedef struct
-{
-  address_t N_neighbor_main_addr;
-  link_status_t N_status;
-  willingness_t N_willingness;
-  int D;
-  int reachability;
-} olsr_N_tuple_t;
-
-static void
-olsr_N_tuple_init(olsr_N_tuple_t* tuple)
-{
-  tuple->N_neighbor_main_addr = 0;
-  tuple->N_status = NOT_NEIGH;
-  tuple->N_willingness = WILL_DEFAULT;
-  tuple->D = 0;
-  tuple->reachability = 0;
-}
-
-SET_DECLARE(N, MPR_SET_MAX_SIZE)
-SET_IMPLEMENT(N, MPR_SET_MAX_SIZE)
-
-SET_DECLARE_(N2, neighbor2, MPR_SET_MAX_SIZE)
+SET_IMPLEMENT(N,   MPR_SET_MAX_SIZE)
 SET_IMPLEMENT_(N2, neighbor2, MPR_SET_MAX_SIZE)
 
-# define FOREACH_N(Var, Code)                   \
-  SET_FOREACH(N, Var, Code)
+static bool is_recomputing = FALSE;
 
-# define FOREACH_N2(Var, Code)                  \
-  SET_FOREACH_(N2, neighbor2, Var, Code)
+bool
+olsr_mpr_set_is_recomputing()
+{
+  return is_recomputing;
+}
+
+void
+olsr_mpr_set_init()
+{
+  olsr_N_set_init_();
+  olsr_N2_set_init_();
+  olsr_mpr_set_init_();
+}
 
 void
 olsr_mpr_tuple_init(olsr_mpr_tuple_t* tuple)
@@ -48,6 +35,9 @@ olsr_mpr_tuple_init(olsr_mpr_tuple_t* tuple)
 void
 olsr_mpr_set_insert(address_t addr)
 {
+  // Avoid duplicates (not in RFC):
+  FOREACH_MPR(mpr, if (mpr->addr == addr) return);
+
   olsr_mpr_tuple_t tuple =
     {
       .addr = addr,
@@ -66,32 +56,69 @@ olsr_is_mpr(address_t address)
 }
 
 void
+olsr_N_tuple_init(olsr_N_tuple_t* tuple)
+{
+  tuple->N_neighbor_main_addr = 0;
+  tuple->N_status = NOT_NEIGH;
+  tuple->N_willingness = WILL_DEFAULT;
+  tuple->D = 0;
+  tuple->reachability = 0;
+}
+
+void
 olsr_mpr_compute_N(address_t iface_address)
 {
+  DEBUG_MPR("first, make N empty");
   olsr_N_set_empty_();
+
+  DEBUG_MPR("foreach neighbor insert it in N");
+  DEBUG_INC;
   FOREACH_NEIGHBOR(neighb,
     const address_t neighb_main_addr =
       neighb->N_neighbor_main_addr;
+    DEBUG_MPR("neighbor main address is %d", neighb_main_addr);
     olsr_N_tuple_t tuple;
     tuple.N_neighbor_main_addr = neighb->N_neighbor_main_addr;
     tuple.N_status = neighb->N_status;
     tuple.N_willingness = neighb->N_willingness;
     tuple.D = 0;
+    DEBUG_MPR("find out if it is an iface neighbor");
+    DEBUG_INC;
     if (olsr_is_iface_neighbor(iface_address, neighb_main_addr))
-      olsr_N_set_insert_(&tuple));
+    {
+      DEBUG_MPR("insert it in N");
+      olsr_N_set_insert_(&tuple);
+    }
+    DEBUG_DEC);
+
+  DEBUG_DEC;
 }
 
 void
 olsr_mpr_compute_N2()
 {
+  DEBUG_MPR("first, make N2 empty");
   olsr_N2_set_empty_();
+
+  DEBUG_MPR("foreach neighbor2 find the associated neighbor");
+  DEBUG_INC;
   FOREACH_NEIGHBOR2_EREW(n2,
+    DEBUG_MPR("n2 [neighbor_addr:%d, 2hop_addr:%d, time:%d]",
+              n2->N_neighbor_main_addr, n2->N_2hop_addr, n2->N_time);
+    DEBUG_INC;
     FOREACH_N(n,
       if (n->N_neighbor_main_addr == n2->N_neighbor_main_addr)
       {
+        DEBUG_MPR("n found [status:%s, will:%s]",
+                  olsr_link_status_str(n->N_status),
+                  olsr_willingness_str(n->N_willingness));
+        DEBUG_MPR("inserting n2 into N2");
         olsr_N2_set_insert_(n2);
         break;
-      }));
+      })
+    DEBUG_DEC);
+
+  DEBUG_DEC;
 }
 
 int
@@ -119,8 +146,16 @@ void
 olsr_mpr_set_compute_iface(interface_t iface)
 {
   const address_t iface_address = state.iface_addresses[iface];
+
+  DEBUG_MPR("compute N set");
+  DEBUG_INC;
   olsr_mpr_compute_N(iface_address);
+  DEBUG_DEC;
+
+  DEBUG_MPR("compute N2 set");
+  DEBUG_INC;
   olsr_mpr_compute_N2();
+  DEBUG_DEC;
 
   FOREACH_N(n,
     if (n->N_willingness == WILL_ALWAYS)
@@ -197,10 +232,26 @@ olsr_mpr_set_compute_iface(interface_t iface)
 void
 olsr_mpr_set_recompute()
 {
+  if (is_recomputing)
+    return;
+
+  is_recomputing = TRUE;
+
+  DEBUG_MPR("recomputing MPR set, first empty it");
   olsr_mpr_set_empty();
 
+  DEBUG_MPR("foreach iface, update it");
+  DEBUG_INC;
   for (int iface = 0; iface < IFACES_COUNT; iface++)
+  {
+    DEBUG_MPR("iface %c:", olsr_iface_print(iface));
+    DEBUG_INC;
     olsr_mpr_set_compute_iface(iface);
+    DEBUG_DEC;
+  }
+  DEBUG_DEC;
+
+  is_recomputing = FALSE;
 
   /*
      -    An additional HELLO message MAY be sent when the MPR set
@@ -209,7 +260,82 @@ olsr_mpr_set_recompute()
   olsr_hello_force_send();
 }
 
+
+
 #ifdef DEBUG
+void olsr_N_set_print()
+{
+  DEBUG_MPR("--- N SET ---");
+  DEBUG_MPR("");
+
+  DEBUG_INC;
+
+  DEBUG_MPR(".-%s-.-%s-.-%s-.-%s-.-%s-.",
+            DASHES(10), DASHES(10), DASHES(12),
+            DASHES(4), DASHES(4));
+
+  DEBUG_MPR("| %10s | %10s | %12s | %4s | %4s |",
+            "main addr", "status", "will", "D", "r");
+
+  DEBUG_MPR("+-%s-+-%s-+-%s-+-%s-+-%s-+",
+            DASHES(10), DASHES(10), DASHES(12),
+            DASHES(4), DASHES(4));
+
+  FOREACH_N(
+    n,
+    DEBUG_MPR("| %10d | %10s | %12s | %4d | %4d |",
+              n->N_neighbor_main_addr,
+              olsr_link_status_str(n->N_status),
+              olsr_willingness_str(n->N_willingness),
+              n->D,
+              n->reachability
+      );
+    );
+
+  DEBUG_MPR("'-%s-'-%s-'-%s-'-%s-'-%s-'",
+            DASHES(10), DASHES(10), DASHES(12),
+            DASHES(4), DASHES(4));
+
+  DEBUG_DEC;
+
+  DEBUG_MPR("");
+
+  DEBUG_MPR("--- END N SET ---");
+}
+
+void olsr_N2_set_print()
+{
+  DEBUG_MPR("--- N2 SET ---");
+  DEBUG_MPR("");
+
+  DEBUG_INC;
+
+  DEBUG_MPR("current time is %d", (int)olsr_get_current_time());
+  DEBUG_MPR("");
+
+  DEBUG_MPR(".-%s-.-%s-.-%s-.", DASHES(12), DASHES(12), DASHES(10));
+
+  DEBUG_MPR("| %12s | %12s | %10s |", "n main addr", "n2 main addr", "time");
+
+  DEBUG_MPR("+-%s-+-%s-+-%s-+", DASHES(12), DASHES(12), DASHES(10));
+
+  FOREACH_N2(
+    n,
+    DEBUG_MPR("| %12d | %12d | %10d |",
+                   n->N_neighbor_main_addr,
+                   n->N_2hop_addr,
+                   n->N_time);
+    );
+
+  DEBUG_MPR("'-%s-'-%s-'-%s-'", DASHES(12), DASHES(12), DASHES(10));
+
+  DEBUG_DEC;
+
+  DEBUG_MPR("");
+
+  DEBUG_MPR("--- END N2 SET ---");
+}
+
 void olsr_mpr_set_print()
 {
   DEBUG_MPR("--- MPR SET ---");

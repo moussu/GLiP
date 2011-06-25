@@ -9,6 +9,9 @@
 
 SET_IMPLEMENT(link, LINK_SET_MAX_SIZE)
 
+#undef DEBUG_LINK
+#define DEBUG_LINK(S, ...)
+
 /*
      -    The L_SYM_time field of a link tuple expires.  This is
           considered as a neighbor loss if the link described by the
@@ -248,14 +251,38 @@ bool
 olsr_is_iface_neighbor(address_t iface_address,
                        address_t neighbor_main_address)
 {
-  FOREACH_LINK_EREW(link,
+  DEBUG_LINK("finding out if neighbor [main_addr:%d] "
+             "is neighbor of iface [iface_addr:%d]",
+             neighbor_main_address, iface_address);
+
+  DEBUG_LINK("foreach link (autoremove)");
+  DEBUG_LINK("if a link goes from iface to neighbor (whichever iface)");
+  DEBUG_LINK("it is TRUE");
+
+  DEBUG_INC;
+  FOREACH_LINK_EREW(
+    link,
+    address_t main_address =
+    olsr_iface_to_main_address(link->L_neighbor_iface_addr);
+
     if (link->L_local_iface_addr == iface_address
-        && neighbor_main_address
-        == olsr_iface_to_main_address(link->L_neighbor_iface_addr))
-      return TRUE);
+        && neighbor_main_address == main_address)
+    {
+      DEBUG_LINK("match, return TRUE");
+      DEBUG_DEC;
+      return TRUE;
+    });
+
+  DEBUG_DEC;
+
+  DEBUG_LINK("no match, return FALSE");
 
   return FALSE;
 }
+
+# undef DEBUG_LINK
+#  define DEBUG_LINK(S, ...)                    \
+  DEBUG_PRINT(S, PURPLE, ##__VA_ARGS__)
 
 #ifdef DEBUG
 void olsr_link_set_print()

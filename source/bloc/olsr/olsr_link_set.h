@@ -50,7 +50,6 @@ SET_DEFAULT_FIND(link)
 void olsr_link_set_expire(olsr_link_tuple_t* tuple);
 void olsr_link_tuple_init(olsr_link_tuple_t* tuple);
 olsr_link_tuple_t* olsr_link_set_has(address_t neighbor_iface_addr);
-void olsr_send_hello(interface_t iface);
 olsr_link_tuple_t* olsr_link_set_insert(const olsr_link_tuple_t* tuple);
 void olsr_link_set_delete(int i);
 void olsr_link_set_updated(const olsr_link_tuple_t* tuple);

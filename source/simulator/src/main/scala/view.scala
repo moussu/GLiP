@@ -12,7 +12,7 @@ package simulator.view {
 
     private var pool: Pool = new Pool(model, w, h)
     private var selected: Option[Block] = None
-    private var detailed: Boolean = false
+    private var detailed: Boolean = true
     private var offsetX:  Int = 0
     private var offsetY:  Int = 0
 

@@ -36,7 +36,7 @@ cd $(dirname $0)
 make
 
 cd ../simulator
-sbt compile
+sbt compile || exit 1
 sbt run &
 sbt=$!
 cd -

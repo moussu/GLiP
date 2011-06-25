@@ -19,7 +19,6 @@ typedef struct
 SET_DECLARE(neighbor, NEIGHBOR_SET_MAX_SIZE)
 SET_DEFAULT_INIT(neighbor)
 SET_DEFAULT_EMPTY(neighbor)
-SET_DEFAULT_INSERT(neighbor)
 SET_DEFAULT_APPLY(neighbor)
 SET_DEFAULT_FIND(neighbor)
 SET_DEFAULT_IS_EMPTY(neighbor)
@@ -29,6 +28,8 @@ SET_DEFAULT_DECLARE_EMPTY(neighbor)
   SET_FOREACH(neighbor, Var, Code)
 
 void olsr_neighbor_tuple_init(olsr_neighbor_tuple_t* tuple);
+olsr_neighbor_tuple_t*
+olsr_neighbor_set_insert(const olsr_neighbor_tuple_t* t);
 void olsr_neighbor_set_delete(int i);
 void olsr_neighbor_reset_advertised();
 bool olsr_neighbor_set_advertised(address_t addr,
