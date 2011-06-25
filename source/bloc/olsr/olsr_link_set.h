@@ -32,12 +32,16 @@ SET_DEFAULT_FIND(link)
 
 # define FOREACH_LINK_EREW(Var, Code)                           \
   FOREACH_LINK_CREW(Var,                                        \
-    if (Var->L_time >= olsr_get_current_time())                 \
+    if (Var->L_time < olsr_get_current_time())                  \
     {                                                           \
+      DEBUG_LINK("link set tuple expired [n_iface_addr:%d]",    \
+                 Var->L_neighbor_iface_addr);                   \
+      DEBUG_LINK("current time is %d",                          \
+                 olsr_get_current_time());                      \
       olsr_link_set_delete_(__i_link);                          \
       continue;                                                 \
     }                                                           \
-    else if (Var->L_SYM_time >= olsr_get_current_time())        \
+    else if (Var->L_SYM_time < olsr_get_current_time())         \
       olsr_link_set_expire(Var);                                \
     Code)
 
