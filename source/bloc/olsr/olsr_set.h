@@ -61,9 +61,6 @@
 # define SET_FIND(Name, Cond, RetVar)           \
   SET_FIND_(Name, Name, Cond, RetVar)
 
-# define SET_EMPTY(Name)                                                \
-  SET_FOREACH___(Name, olsr_##Name##_set_declare_empty_(__i_##Name))
-
 # define SET_DECLARE_(Name, Tuple, MaxSize)                             \
   typedef bool (*olsr_##Name##_condition_t)                             \
     (const olsr_##Tuple##_tuple_t* t);                                  \
@@ -131,7 +128,9 @@
                                                                         \
   void olsr_##Name##_set_empty_()                                       \
   {                                                                     \
-    SET_EMPTY(Name);                                                    \
+    Name##_set.n_tuples = 0;                                            \
+    Name##_set.full = FALSE;                                            \
+    memset(Name##_set.bitmap, 0, Name##_set.bitmap_size);               \
   }                                                                     \
                                                                         \
   olsr_##Tuple##_tuple_t*                                               \
