@@ -29,7 +29,7 @@ olsr_link_set_expire(olsr_link_tuple_t* tuple)
   {
     bool remove = TRUE;
 
-    FOREACH_LINK_EREW(l,
+    FOREACH_LINK_CREW(l,
       if (l == tuple)
         continue;
       if (olsr_iface_to_main_address(l->L_neighbor_iface_addr)
@@ -104,6 +104,7 @@ olsr_link_set_insert(const olsr_link_tuple_t* lt)
 {
   olsr_link_tuple_t* tuple = olsr_link_set_insert_(lt);
   olsr_link_set_updated(tuple);
+
   return tuple;
 }
 
