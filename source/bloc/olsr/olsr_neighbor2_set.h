@@ -16,7 +16,6 @@ typedef struct
 SET_DECLARE(neighbor2, NEIGHBOR2_SET_MAX_SIZE)
 SET_DEFAULT_INIT(neighbor2)
 SET_DEFAULT_EMPTY(neighbor2)
-SET_DEFAULT_INSERT(neighbor2)
 SET_DEFAULT_APPLY(neighbor2)
 SET_DEFAULT_FIND(neighbor2)
 SET_DEFAULT_IS_EMPTY(neighbor2)
@@ -25,11 +24,13 @@ SET_DEFAULT_DECLARE_EMPTY(neighbor2)
 # define FOREACH_NEIGHBOR2_CREW(Var, Code)      \
   SET_FOREACH(neighbor2, Var, Code)
 
-# define FOREACH_NEIGHBOR2_EREW(Var, Code)              \
+# define FOREACH_NEIGHBOR2_EREW(Var, Code)                      \
   SET_FOREACH_AUTOREMOVE(neighbor2, Var, N_time, Code)
 
 void olsr_neighbor2_tuple_init(olsr_neighbor2_tuple_t* tuple);
 void olsr_neighbor2_set_delete(int i);
+olsr_neighbor2_tuple_t*
+olsr_neighbor2_set_insert_or_update(const olsr_neighbor2_tuple_t* tuple);
 
 # ifdef DEBUG
 void olsr_neighbor2_set_print();

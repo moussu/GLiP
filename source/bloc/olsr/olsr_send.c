@@ -50,7 +50,8 @@ olsr_send_message(olsr_message_t* message, interface_t iface)
   // Just in case it hasn't been already done:
   message->header.size = message->content_size +
     sizeof(olsr_message_hdr_t);
-  message->header.addr = state.iface_addresses[iface];
+  message->header.source_addr = state.iface_addresses[iface];
+  message->header.addr = state.address;
   message->header.hops = 0;
   message->header.sn = message_sn++;
   DEBUG_SEND("putting message[sn:%d, size:%d] in sending queue",

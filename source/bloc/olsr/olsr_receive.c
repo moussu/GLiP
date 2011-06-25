@@ -26,6 +26,7 @@
 static xQueueHandle receive_queue;
 static xQueueHandle receive_queues[IFACES_COUNT];
 static void olsr_receive_task(void* pvParameters);
+static bool queues_created = FALSE;
 
 void
 olsr_receive_init()
@@ -42,6 +43,7 @@ olsr_receive_init()
               configMINIMAL_STACK_SIZE, NULL,
               tskIDLE_PRIORITY, NULL);
 
+  queues_created = TRUE;
 }
 
 void
@@ -75,6 +77,9 @@ olsr_receive_callback(int iSocket, void* pvContext)
   if (length < sizeof(olsr_packet_hdr_t))
     goto error;
 
+  if (!queues_created)
+    return;
+
   if (olsr_iface_parse(xPacket.ucPacket[0], &iface) != -1)
   {
     memcpy(&packet.header, xPacket.ucPacket + 1, sizeof(olsr_packet_hdr_t));
@@ -107,19 +112,19 @@ olsr_receive_task(void* pvParameters)
 #ifdef DEBUG
     if ((i = (i + 1) % 100) == 0)
     {
-      olsr_duplicate_set_print();
-      olsr_link_set_print();
+      //olsr_duplicate_set_print();
+      //olsr_link_set_print();
       olsr_mpr_set_print();
-      olsr_ms_set_print();
-      olsr_neighbor_set_print();
-      olsr_neighbor2_set_print();
+      //olsr_ms_set_print();
+      //olsr_neighbor_set_print();
+      //olsr_neighbor2_set_print();
     }
 #endif
 
     for (int iface = 0; iface < IFACES_COUNT; iface++)
     {
       // Timeout should be 0 here, but if so task starves sending task...
-      if(!xQueueReceive(receive_queues[iface], &packet, 10 / portTICK_RATE_MS))
+      if(!xQueueReceive(receive_queues[iface], &packet, 1 / portTICK_RATE_MS))
         continue;
 
       DEBUG_RECEIVE("received packet[size:%d] <- iface %c",

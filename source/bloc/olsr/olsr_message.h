@@ -75,6 +75,7 @@ typedef struct
      there are no following messages - until the end of the packet). */
 
   address_t addr;
+  address_t source_addr;
   /* This field contains the main address of the node, which has
      originally generated this message.  This field SHOULD NOT be
      confused with the source address from the IP header, which is

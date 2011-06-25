@@ -5,6 +5,7 @@
 # include <stdint.h>
 # include <stm32f10x.h>
 # include "olsr_ifaces.h"
+# include "olsr_message.h"
 # include "olsr_time.h"
 # include "olsr_types.h"
 # include "olsr_constants.h"
@@ -52,25 +53,26 @@ olsr_link_code(link_type_t lt, neighbor_type_t nt)
 {
   assert(nt < 4);
   assert(lt < 4);
-  return (nt << 2) | lt;
+  return ((nt & 0x3) << 2) | (lt & 0x3);
 }
 
 inline link_type_t
 olsr_link_type(uint8_t link_code)
 {
-  return link_code & 0xf;
+  return link_code & 0x3;
 }
 
 inline neighbor_type_t
 olsr_neighbor_type(uint8_t link_code)
 {
-  return (link_code >> 2) & 0xf;
+  return (link_code >> 2) & 0x3;
 }
 
 void olsr_hello_init();
 void olsr_hello_task(void* pvParameters);
 void olsr_process_hello_message(packet_byte_t* message, int size,
                                 interface_t iface);
+void olsr_generate_hello(olsr_message_t* hello_message, interface_t iface);
 void olsr_hello_force_send();
 void olsr_hello_mutex_take();
 void olsr_hello_mutex_give();

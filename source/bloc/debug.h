@@ -51,16 +51,20 @@ void textcolor(color_t color);
   DEBUG_PRINT(S, LYELLOW, ##__VA_ARGS__)
 
 #  define DEBUG_SEND(S, ...)                    \
-  DEBUG_PRINT(S, LBLUE, ##__VA_ARGS__)
+
+//  DEBUG_PRINT(S, LBLUE, ##__VA_ARGS__)
 
 #  define DEBUG_RECEIVE(S, ...)                 \
-  DEBUG_PRINT(S, LGREEN, ##__VA_ARGS__)
+
+//  DEBUG_PRINT(S, LGREEN, ##__VA_ARGS__)
 
 #  define DEBUG_HELLO(S, ...)                   \
-  DEBUG_PRINT(S, LRED, ##__VA_ARGS__)
+
+//  DEBUG_PRINT(S, LRED, ##__VA_ARGS__)
 
 #  define DEBUG_SET(S, ...)                     \
-  DEBUG_PRINT(S, LPURPLE, ##__VA_ARGS__)
+
+//  DEBUG_PRINT(S, LPURPLE, ##__VA_ARGS__)
 
 #  define DEBUG_LINK(S, ...)                    \
   DEBUG_PRINT(S, PURPLE, ##__VA_ARGS__)
@@ -79,6 +83,16 @@ void textcolor(color_t color);
 
 #  define DEBUG_DUPLICATE(S, ...)               \
   DEBUG_PRINT(S, GREEN, ##__VA_ARGS__)
+
+#  define MPR(S, ...)                                  \
+  DEBUG_MPR(S, ##__VA_ARGS__);                         \
+  DEBUG_INC;                                           \
+  olsr_neighbor_set_print();                           \
+  olsr_N_set_print();                                  \
+  olsr_neighbor2_set_print();                          \
+  olsr_N2_set_print();                                 \
+  olsr_mpr_set_print();                                \
+  DEBUG_DEC;
 
 # else
 #  define DEBUG_SET_ID(Id)
