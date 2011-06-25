@@ -111,13 +111,12 @@ olsr_process_hello_message(packet_byte_t* message, int size,
   message += sizeof(olsr_message_hdr_t);
   olsr_time_t Vtime = olsr_deserialize_time(header->Vtime);
   olsr_link_tuple_t* tuple = NULL;
-  bool inserted = FALSE;
   olsr_hello_message_hdr_t* hello_header =
     (olsr_hello_message_hdr_t*)message;
   message += sizeof(olsr_hello_message_hdr_t);
 
-  DEBUG_HELLO("hello message [size:%d, sn:%d]",
-              header->size, header->sn);
+  DEBUG_HELLO("hello message [size:%d, sn:%d, Vtime:%d]",
+              header->size, header->sn, Vtime);
   DEBUG_INC;
 
   olsr_hello_mutex_take();
@@ -135,8 +134,8 @@ olsr_process_hello_message(packet_byte_t* message, int size,
         .L_SYM_time            = olsr_get_current_time() - 1,
         .L_time                = olsr_get_current_time() + Vtime,
       };
-    tuple = olsr_link_set_insert(&t);
-    inserted = TRUE;
+
+    tuple = olsr_link_set_insert_(&t);
   }
 
   tuple->L_ASYM_time = olsr_get_current_time() + Vtime;
@@ -200,14 +199,10 @@ olsr_process_hello_message(packet_byte_t* message, int size,
 
     tuple->L_time = MAX(tuple->L_time, tuple->L_ASYM_time);
 
-    if (!inserted)
-    {
-      DEBUG_HELLO("tuple (%p) was updated not inserted", tuple);
-      DEBUG_HELLO("call link set update callbacks");
-      DEBUG_INC;
-      olsr_link_set_updated(tuple);
-      DEBUG_DEC;
-    }
+    DEBUG_HELLO("call link set update callbacks");
+    DEBUG_INC;
+    olsr_link_set_updated(tuple);
+    DEBUG_DEC;
 
     DEBUG_DEC;
   }
