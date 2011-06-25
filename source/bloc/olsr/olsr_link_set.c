@@ -140,29 +140,6 @@ void olsr_link_set_delete(int i)
 void
 olsr_link_set_updated(const olsr_link_tuple_t* lt)
 {
-  olsr_neighbor_tuple_t tuple;
-  olsr_neighbor_tuple_init(&tuple);
-
-  olsr_neighbor_tuple_t* nt =
-    olsr_link_set_associated_neighbor(lt, NULL);
-
-  if (!nt)
-  {
-    tuple.N_neighbor_main_addr =
-      olsr_iface_to_main_address(lt->L_neighbor_iface_addr);
-    nt = olsr_neighbor_set_insert(&tuple);
-  }
-
-  nt->N_status = NOT_SYM;
-
-  FOREACH_LINK_EREW(link,
-    if (olsr_iface_to_main_address(link->L_neighbor_iface_addr)
-        == nt->N_neighbor_main_addr
-        && link->L_SYM_time >= olsr_get_current_time())
-    {
-      nt->N_status = SYM;
-    });
-
   /*
      -    A new link tuple is inserted in the Link Set with a non
           expired L_SYM_time or a tuple with expired L_SYM_time is
@@ -172,25 +149,73 @@ olsr_link_set_updated(const olsr_link_tuple_t* lt)
           node.
    */
 
-  // FIXME: is that right ?
+  bool updated_is_sym = lt->L_SYM_time > olsr_get_current_time();
 
-  if (lt->L_SYM_time > olsr_get_current_time())
+  olsr_neighbor_tuple_t tuple;
+  olsr_neighbor_tuple_init(&tuple);
+
+  DEBUG_LINK("a link tuple was updated or inserted "
+             "[iface_addr:%d, n_iface_addr:%d]",
+             lt->L_local_iface_addr, lt->L_neighbor_iface_addr);
+  DEBUG_INC;
+
+  int pos = -1;
+  olsr_neighbor_tuple_t* associated =
+    olsr_link_set_associated_neighbor(lt, &pos);
+  olsr_neighbor_tuple_t* nt = NULL;
+
+  if (associated)
   {
-    int pos = -1;
-    olsr_neighbor_tuple_t* neighbor =
-      olsr_link_set_associated_neighbor(lt, &pos);
-
-    if (neighbor && pos != -1)
-    {
-      olsr_neighbor_tuple_t tuple;
-      olsr_neighbor_tuple_init(&tuple);
-      neighbor = olsr_neighbor_set_insert(&tuple);
-      neighbor->N_neighbor_main_addr =
-        olsr_iface_to_main_address(lt->L_neighbor_iface_addr);
-    }
-
-    neighbor->N_status = SYM;
+    nt = associated;
+    DEBUG_LINK("an associated tuple has been found in the neighbor set");
+    DEBUG_LINK("[status:%s, will:%s]",
+               olsr_link_status_str(nt->N_status),
+               olsr_willingness_str(nt->N_willingness));
   }
+  else
+  {
+    DEBUG_LINK("no associated tuple exists in the neighbor set, inserting one");
+    DEBUG_INC;
+
+    tuple.N_neighbor_main_addr =
+      olsr_iface_to_main_address(lt->L_neighbor_iface_addr);
+    nt = olsr_neighbor_set_insert(&tuple);
+
+    DEBUG_DEC;
+  }
+
+  if (updated_is_sym)
+  {
+    DEBUG_LINK("setting status to %s as updated link tuple is SYM",
+               olsr_link_status_str(SYM));
+    nt->N_status = SYM;
+    DEBUG_DEC;
+    return;
+  }
+
+  DEBUG_LINK("setting status to %s", olsr_link_status_str(NOT_SYM));
+
+  nt->N_status = NOT_SYM;
+
+  DEBUG_LINK("seeking for an associated SYM link of our neighbor tuple");
+  DEBUG_INC;
+
+  FOREACH_LINK_CREW(link,
+    if (olsr_iface_to_main_address(link->L_neighbor_iface_addr)
+        == nt->N_neighbor_main_addr
+        && link->L_SYM_time >= olsr_get_current_time())
+    {
+      DEBUG_LINK("found one [iface_addr:%d, n_iface_addr:%d]",
+                 lt->L_local_iface_addr, lt->L_neighbor_iface_addr);
+
+      nt->N_status = SYM;
+      break;
+    });
+
+  DEBUG_DEC;
+  DEBUG_LINK("status is now %s", olsr_link_status_str(nt->N_status));
+
+  DEBUG_DEC;
 }
 
 olsr_neighbor_tuple_t*
