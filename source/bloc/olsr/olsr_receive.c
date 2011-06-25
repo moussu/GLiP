@@ -114,8 +114,8 @@ olsr_receive_task(void* pvParameters)
     {
       //olsr_duplicate_set_print();
       //olsr_link_set_print();
-      olsr_mpr_set_print();
-      //olsr_ms_set_print();
+      //olsr_mpr_set_print();
+      olsr_ms_set_print();
       //olsr_neighbor_set_print();
       //olsr_neighbor2_set_print();
     }

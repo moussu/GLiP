@@ -63,8 +63,7 @@ void textcolor(color_t color);
 //  DEBUG_PRINT(S, LRED, ##__VA_ARGS__)
 
 #  define DEBUG_SET(S, ...)                     \
-
-//  DEBUG_PRINT(S, LPURPLE, ##__VA_ARGS__)
+  DEBUG_PRINT(S, LPURPLE, ##__VA_ARGS__)
 
 #  define DEBUG_LINK(S, ...)                    \
   DEBUG_PRINT(S, PURPLE, ##__VA_ARGS__)
