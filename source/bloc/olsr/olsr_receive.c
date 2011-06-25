@@ -98,9 +98,24 @@ static void
 olsr_receive_task(void* pvParameters)
 {
   olsr_packet_t packet;
+#ifdef DEBUG
+  int i = -1;
+#endif
 
   for (;;)
   {
+#ifdef DEBUG
+    if ((i = (i + 1) % 100) == 0)
+    {
+      olsr_duplicate_set_print();
+      olsr_link_set_print();
+      olsr_mpr_set_print();
+      olsr_ms_set_print();
+      olsr_neighbor_set_print();
+      olsr_neighbor2_set_print();
+    }
+#endif
+
     for (int iface = 0; iface < IFACES_COUNT; iface++)
     {
       // Timeout should be 0 here, but if so task starves sending task...
@@ -109,19 +124,14 @@ olsr_receive_task(void* pvParameters)
 
       DEBUG_RECEIVE("received packet[size:%d] <- iface %c",
                     packet.header.length, olsr_iface_print(iface));
-
       DEBUG_INC;
-      olsr_process_packet(&packet, iface);
-      DEBUG_DEC;
 
-#ifdef DEBUG
-      olsr_duplicate_set_print();
-      olsr_link_set_print();
-      olsr_mpr_set_print();
-      olsr_ms_set_print();
-      olsr_neighbor_set_print();
-      olsr_neighbor2_set_print();
-#endif
+      olsr_process_packet(&packet, iface);
+
+      DEBUG_DEC;
     }
+
+    // FIXME: as it is not used yet, it is not cleaned.
+    FOREACH_NEIGHBOR2_EREW(n, ;);
   }
 }
