@@ -18,10 +18,10 @@
     Code;                                               \
   }
 
-# define SET_FOREACH__(Name, Tuple, Var, Code)          \
-  SET_FOREACH___(Name,                                  \
-                 olsr_##Tuple##_tuple_t* Var =          \
-                 Name##_set.tuples + __i_##Name;        \
+# define SET_FOREACH__(Name, Tuple, Var, Code)                          \
+  SET_FOREACH___(Name,                                                  \
+                 olsr_##Tuple##_tuple_t* Var __attribute__((unused)) =  \
+                 Name##_set.tuples + __i_##Name;                        \
                  Code)
 
 # define SET_FOREACH_(Name, Tuple, Var, Code)                   \
@@ -48,7 +48,7 @@
 # define SET_APPLY(Name, Action)                        \
   SET_APPLY_(Name, Name, Action)
 
-# define SET_FIND_(Name, Tuple, Cond, RetVar)   \
+# define SET_FIND_(Name, Tuple, RetVar, Cond)   \
   RetVar = NULL;                                \
   SET_FOREACH_(Name, Tuple, ___tuple,           \
               if ((*(Cond))(__tuple))           \
@@ -58,8 +58,8 @@
               }                                 \
     )
 
-# define SET_FIND(Name, Cond, RetVar)           \
-  SET_FIND_(Name, Name, Cond, RetVar)
+# define SET_FIND(Name, RetVar, Cond)           \
+  SET_FIND_(Name, Name, RetVar, Cond)
 
 # define SET_DECLARE_(Name, Tuple, MaxSize)                             \
   typedef bool (*olsr_##Name##_condition_t)                             \
@@ -187,7 +187,7 @@
   olsr_##Name##_set_find_(olsr_##Name##_condition_t cond)               \
   {                                                                     \
     olsr_##Tuple##_tuple_t* __tuple = NULL;                             \
-    SET_FIND_(Name, Tuple, cond, __tuple);                              \
+    SET_FIND_(Name, Tuple, __tuple, cond);                              \
     return __tuple;                                                     \
   }
 

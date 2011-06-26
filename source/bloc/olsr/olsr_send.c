@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include <FreeRTOS.h>
 #include <string.h>
 #include <queue.h>
@@ -32,9 +34,15 @@ olsr_send_message_content(olsr_message_hdr_t* header,
 {
   olsr_message_t message;
   if (content_size > MAX_MESSAGE_CONTENT_SIZE)
-    return;
+  {
+    DEBUG_SEND("MAX_MESSAGE_CONTENT_SIZE overflow");
+    exit(1);
+  }
   if (header->ttl == 0)
-    return;
+  {
+    DEBUG_SEND("sending message with TTL = 0");
+    exit(1);
+  }
   message.header = *header;
   message.header.size = content_size + sizeof(olsr_message_hdr_t);
   message.content_size = content_size;

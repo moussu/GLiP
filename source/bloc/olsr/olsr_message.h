@@ -130,4 +130,8 @@ void olsr_process_message(packet_byte_t* message, int size, interface_t iface);
 void olsr_dispatch_message(packet_byte_t* message, int size, interface_t iface);
 void olsr_default_forward(packet_byte_t* message, int size, interface_t iface);
 
+#ifdef DEBUG
+const char* olsr_message_type_str(message_type_t t);
+#endif
+
 #endif

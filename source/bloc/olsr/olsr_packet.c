@@ -1,3 +1,4 @@
+#include "olsr_message.h"
 #include "olsr_packet.h"
 
 void
@@ -15,9 +16,18 @@ olsr_process_packet(olsr_packet_t* packet, interface_t iface)
 
   do
   {
+    DEBUG_RECEIVE("message [type:%s, addr:%d, sn:%d]",
+                  olsr_message_type_str(message_header->type),
+                  message_header->addr,
+                  message_header->sn);
+
+    DEBUG_INC;
     olsr_dispatch_message((packet_byte_t*)message_header,
                           message_header->size, iface);
-    message_header += message_header->size;
+    DEBUG_DEC;
+
+    message_header = (olsr_message_hdr_t*)
+      ((packet_byte_t*)message_header + message_header->size);
   } while ((packet_byte_t*)message_header <
            (packet_byte_t*)&packet->header + packet->header.length);
 

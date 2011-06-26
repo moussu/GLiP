@@ -69,12 +69,9 @@ olsr_neighbor_type(uint8_t link_code)
 }
 
 void olsr_hello_init();
-void olsr_hello_task(void* pvParameters);
 void olsr_process_hello_message(packet_byte_t* message, int size,
                                 interface_t iface);
 void olsr_generate_hello(olsr_message_t* hello_message, interface_t iface);
 void olsr_hello_force_send();
-void olsr_hello_mutex_take();
-void olsr_hello_mutex_give();
 
 #endif

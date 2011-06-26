@@ -165,7 +165,7 @@ package simulator.view {
         context.popMatrix()
 
         val text = if (id < 10) "0" + id else id.toString
-        val address = "0x" + addr().toString
+        val address = addr().toString
         context.textSize(45)
         context.text(text, -context.textWidth(text) / 2,
                      -30, width, height)

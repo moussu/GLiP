@@ -1,5 +1,6 @@
 #include <string.h>
 #include "olsr_ms_set.h"
+#include "olsr_topology_set.h"
 
 SET_IMPLEMENT(ms, MS_SET_MAX_SIZE)
 
@@ -14,16 +15,25 @@ bool
 olsr_is_ms(address_t addr)
 {
   FOREACH_MS_EREW(tuple,
-    if (tuple->MS_time < olsr_get_current_time())
-    {
-      olsr_ms_set_delete(__i_ms);
-      continue;
-    }
-
     if (tuple->MS_main_addr == addr)
       return TRUE);
 
   return FALSE;
+}
+
+void
+olsr_ms_set_delete(int i)
+{
+  olsr_ms_set_delete_(i);
+
+  /*
+   A node MAY transmit additional TC-messages to increase its
+   reactiveness to link failures.  When a change to the MPR selector set
+   is detected and this change can be attributed to a link failure, a
+   TC-message SHOULD be transmitted after an interval shorter than
+   TC_INTERVAL.
+ */
+  olsr_tc_force_send();
 }
 
 #ifdef DEBUG
