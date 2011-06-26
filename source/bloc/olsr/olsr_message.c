@@ -106,7 +106,7 @@ olsr_default_forward(packet_byte_t* message, int size, interface_t iface)
       break;
     });
 
-  if (symetric_1hop)
+  if (!symetric_1hop)
     return;
 
   /*
@@ -169,7 +169,11 @@ olsr_default_forward(packet_byte_t* message, int size, interface_t iface)
   new_header.hops++;
 
   for (int iface = 0; iface < IFACES_COUNT; iface++)
-    olsr_send_message_content(&new_header,
-                              message + sizeof(olsr_message_hdr_t),
-                              size - sizeof(olsr_message_hdr_t), iface);
+  {
+    new_header.source_addr = state.iface_addresses[iface];
+    olsr_send_message_content_(&new_header,
+                               message + sizeof(olsr_message_hdr_t),
+                               size - sizeof(olsr_message_hdr_t),
+                               iface);
+  }
 }

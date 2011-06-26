@@ -19,13 +19,13 @@ inline address_t
 olsr_get_interface_address(address_t main_address,
                            interface_t iface)
 {
-  return main_address | iface;
+  return (main_address | iface) & 0xffff;
 }
 
 inline address_t
 olsr_iface_to_main_address(address_t iface_address)
 {
-  return iface_address & (~0x3);
+  return (iface_address & (~0x3)) & 0xffff;
 }
 
 #endif

@@ -128,6 +128,7 @@
                                                                         \
   void olsr_##Name##_set_empty_()                                       \
   {                                                                     \
+    Name##_set.first_empty = 0;                                         \
     Name##_set.n_tuples = 0;                                            \
     Name##_set.full = FALSE;                                            \
     memset(Name##_set.bitmap, 0, Name##_set.bitmap_size);               \
