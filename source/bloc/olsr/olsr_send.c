@@ -27,12 +27,13 @@ olsr_send_init()
               tskIDLE_PRIORITY, NULL);
 }
 
-void
-olsr_send_message_content(olsr_message_hdr_t* header,
-                          packet_byte_t* content,
-                          int content_size, interface_t iface)
+
+static void
+olsr_send_message_copy(olsr_message_t* message,
+                       olsr_message_hdr_t* header,
+                       packet_byte_t* content,
+                       int content_size)
 {
-  olsr_message_t message;
   if (content_size > MAX_MESSAGE_CONTENT_SIZE)
   {
     DEBUG_SEND("MAX_MESSAGE_CONTENT_SIZE overflow");
@@ -43,15 +44,44 @@ olsr_send_message_content(olsr_message_hdr_t* header,
     DEBUG_SEND("sending message with TTL = 0");
     exit(1);
   }
-  message.header = *header;
-  message.header.size = content_size + sizeof(olsr_message_hdr_t);
-  message.content_size = content_size;
-  memcpy(message.content, content, content_size);
+  message->header = *header;
+  message->header.size = content_size + sizeof(olsr_message_hdr_t);
+  message->content_size = content_size;
+  memcpy(message->content, content, content_size);
+}
+
+void
+olsr_send_message_content(olsr_message_hdr_t* header,
+                          packet_byte_t* content,
+                          int content_size,
+                          interface_t iface)
+{
+  olsr_message_t message;
+  olsr_send_message_copy(&message, header, content, content_size);
   olsr_send_message(&message, iface);
 }
 
 void
+olsr_send_message_content_(olsr_message_hdr_t* header,
+                           packet_byte_t* content,
+                           int content_size,
+                           interface_t iface)
+{
+  olsr_message_t message;
+  olsr_send_message_copy(&message, header, content, content_size);
+  olsr_send_message_(&message, iface);
+}
+
+void
 olsr_send_message(olsr_message_t* message, interface_t iface)
+{
+  message->header.addr = state.address;
+  message->header.hops = 0;
+  olsr_send_message_(message, iface);
+}
+
+void
+olsr_send_message_(olsr_message_t* message, interface_t iface)
 {
   static int message_sn = 0;
 
@@ -59,8 +89,6 @@ olsr_send_message(olsr_message_t* message, interface_t iface)
   message->header.size = message->content_size +
     sizeof(olsr_message_hdr_t);
   message->header.source_addr = state.iface_addresses[iface];
-  message->header.addr = state.address;
-  message->header.hops = 0;
   message->header.sn = message_sn++;
   DEBUG_SEND("putting message[sn:%d, size:%d] in sending queue",
              message->header.sn, (int)message->header.size);

@@ -156,7 +156,7 @@ olsr_process_hello_message(packet_byte_t* message, int size,
         - sizeof(olsr_link_message_hdr_t);
       for (int i = 0; i < addresses_byte_size; i += sizeof(address_t))
       {
-        address_t addr = *(address_t*)(link_content + i);
+        address_t addr = (*(address_t*)(link_content + i)) & 0xffff;
 
         DEBUG_HELLO("address %d", addr);
         DEBUG_INC;
@@ -243,7 +243,7 @@ olsr_process_hello_message(packet_byte_t* message, int size,
         - sizeof(olsr_link_message_hdr_t);
       for (int i = 0; i < addresses_byte_size; i += sizeof(address_t))
       {
-        address_t addr = *(address_t*)(link_content + i);
+        address_t addr = (*(address_t*)(link_content + i)) & 0xffff;
         address_t main_addr = olsr_iface_to_main_address(addr);
 
         DEBUG_HELLO("iface address %d [i:%d]", addr, i);
@@ -319,7 +319,7 @@ olsr_process_hello_message(packet_byte_t* message, int size,
         - sizeof(olsr_link_message_hdr_t);
       for (int i = 0; i < addresses_byte_size; i += sizeof(address_t))
       {
-        address_t addr = *(address_t*)(link_content + i);
+        address_t addr = (*(address_t*)(link_content + i)) & 0xffff;
 
         if (nt == MPR_NEIGH)
         {
@@ -421,7 +421,9 @@ olsr_generate_hello(olsr_message_t* hello_message, interface_t iface)
     }
 
     if (t->L_SYM_time >= olsr_get_current_time())
+    {
       link_type = SYM_LINK;
+    }
     else if (t->L_ASYM_time >= olsr_get_current_time())
       link_type = ASYM_LINK;
     else

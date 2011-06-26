@@ -77,15 +77,16 @@ olsr_mpr_compute_N(address_t iface_address)
     const address_t neighb_main_addr =
       neighb->N_neighbor_main_addr;
     DEBUG_MPR("neighbor main address is %d", neighb_main_addr);
-    olsr_N_tuple_t tuple;
-    tuple.N_neighbor_main_addr = neighb->N_neighbor_main_addr;
-    tuple.N_status = neighb->N_status;
-    tuple.N_willingness = neighb->N_willingness;
-    tuple.D = 0;
     DEBUG_MPR("find out if it is an iface neighbor");
     DEBUG_INC;
     if (olsr_is_iface_neighbor(iface_address, neighb_main_addr))
     {
+      olsr_N_tuple_t tuple;
+      tuple.N_neighbor_main_addr = neighb->N_neighbor_main_addr;
+      tuple.N_status = neighb->N_status;
+      tuple.N_willingness = neighb->N_willingness;
+      tuple.D = 0;
+
       DEBUG_MPR("insert it in N");
       olsr_N_set_insert_(&tuple);
     }
@@ -102,18 +103,48 @@ olsr_mpr_compute_N2()
 
   DEBUG_MPR("foreach neighbor2 find the associated neighbor");
   DEBUG_INC;
-  FOREACH_NEIGHBOR2_EREW(n2,
+  FOREACH_NEIGHBOR2_EREW(
+    n2,
     DEBUG_MPR("n2 [neighbor_addr:%d, 2hop_addr:%d, time:%d]",
               n2->N_neighbor_main_addr, n2->N_2hop_addr, n2->N_time);
+
+    if (n2->N_2hop_addr == state.address)
+      continue;
+
+    bool exists_link = FALSE;
+    FOREACH_LINK_EREW(
+      l,
+      if (olsr_iface_to_main_address(l->L_neighbor_iface_addr)
+          == n2->N_2hop_addr)
+      {
+        exists_link = TRUE;
+        break;
+      });
+    if (exists_link)
+      continue;
+
     DEBUG_INC;
-    FOREACH_N(n,
+    FOREACH_N(
+      n,
       if (n->N_neighbor_main_addr == n2->N_neighbor_main_addr)
       {
         DEBUG_MPR("n found [status:%s, will:%s]",
                   olsr_link_status_str(n->N_status),
                   olsr_willingness_str(n->N_willingness));
+
+        // FIXME: definition is ambiguous there...
+        /*
+          excluding:
+
+               (i)   the nodes only reachable by members of N with
+                     willingness WILL_NEVER
+         */
+        if (n->N_willingness == WILL_NEVER)
+          continue;
+
         DEBUG_MPR("inserting n2 into N2");
         olsr_N2_set_insert_(n2);
+
         break;
       })
     DEBUG_DEC);
@@ -126,11 +157,12 @@ olsr_mpr_D(address_t y)
 {
   int D = 0;
   FOREACH_NEIGHBOR2_EREW(n2,
-    bool is_in_n = FALSE;
     if (n2->N_neighbor_main_addr != y)
       continue;
-    if (n2->N_2hop_addr == state.address) /* FIXME: Main or iface? */
+    if (n2->N_2hop_addr == state.address)
       continue;
+
+    bool is_in_n = FALSE;
     FOREACH_N(n,
       if (n->N_neighbor_main_addr == n2->N_2hop_addr)
       {
@@ -174,14 +206,25 @@ olsr_mpr_set_compute_iface(interface_t iface)
     olsr_mpr_set_insert(n2->N_neighbor_main_addr);
     olsr_N2_set_delete_(__i_N2));
 
-  // Compute reachability:
-  FOREACH_N(n,
-    FOREACH_N2(n2,
-      if (n->N_neighbor_main_addr == n2->N_neighbor_main_addr)
-        n->reachability++));
-
   while (N2_set.n_tuples > 0)
   {
+    // Compute reachability:
+    FOREACH_N(
+      n,
+      n->reachability = 0;
+      FOREACH_N2(
+        n2,
+        bool covered = FALSE;
+        FOREACH_MPR(
+          mpr,
+          if (mpr->addr == n2->N_neighbor_main_addr)
+          {
+            covered = TRUE;
+            break;
+          });
+        if (!covered)
+          n->reachability++));
+
     olsr_N_tuple_t* best_n = NULL;
     FOREACH_N(n, best_n = n; break); // Peak first element.
     FOREACH_N(n,
@@ -214,8 +257,8 @@ olsr_mpr_set_compute_iface(interface_t iface)
     olsr_mpr_set_insert(best_n->N_neighbor_main_addr);
 
     FOREACH_N2(n2,
-      FOREACH_N(n,
-        if (n->N_neighbor_main_addr == n2->N_neighbor_main_addr)
+      FOREACH_MPR(mpr,
+        if (mpr->addr == n2->N_neighbor_main_addr)
         {
           olsr_N2_set_delete_(__i_N2);
           break;
@@ -240,7 +283,7 @@ olsr_mpr_set_recompute()
   DEBUG_MPR("recomputing MPR set, first empty it");
   olsr_mpr_set_empty();
 
-  DEBUG_MPR("foreach iface, update it");
+  /*DEBUG_MPR("foreach iface, update it");
   DEBUG_INC;
   for (int iface = 0; iface < IFACES_COUNT; iface++)
   {
@@ -249,7 +292,11 @@ olsr_mpr_set_recompute()
     olsr_mpr_set_compute_iface(iface);
     DEBUG_DEC;
   }
-  DEBUG_DEC;
+  DEBUG_DEC;*/
+
+  FOREACH_NEIGHBOR(
+    n,
+    olsr_mpr_set_insert(n->N_neighbor_main_addr));
 
   is_recomputing = FALSE;
 

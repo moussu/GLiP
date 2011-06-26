@@ -1,8 +1,10 @@
 #include "olsr.h"
 #include "olsr_hello.h"
+#include "olsr_link_set.h"
 #include "olsr_ms_set.h"
 #include "olsr_neighbor_set.h"
 #include "olsr_send.h"
+#include "olsr_state.h"
 #include "olsr_topology_set.h"
 
 SET_IMPLEMENT(topology, TOPOLOGY_SET_MAX_SIZE)
@@ -75,9 +77,22 @@ olsr_process_tc_message(packet_byte_t* tc_message, int size, interface_t iface)
 
   olsr_global_mutex_take();
 
-  if(!olsr_is_symetric_neighbor(header->addr))
+  DEBUG_TOPOLOGY("is there a link tuple such as neighb_iface_addr = %d?",
+    header->source_addr);
+  bool has = FALSE;
+  FOREACH_LINK_EREW(
+    l,
+    if (l->L_neighbor_iface_addr == header->source_addr)
+    {
+      DEBUG_TOPOLOGY("yes");
+      has = TRUE;
+      break;
+    });
+
+  if (!has)
   {
-    DEBUG_TOPOLOGY("only processing symetric neighbors TC message, aborting");
+    DEBUG_TOPOLOGY("no");
+    DEBUG_TOPOLOGY("only processing TC message from ifaces of SYM neighb, aborting");
     olsr_global_mutex_give();
     return;
   }
@@ -106,7 +121,7 @@ olsr_process_tc_message(packet_byte_t* tc_message, int size, interface_t iface)
   DEBUG_TOPOLOGY("no");
   DEBUG_DEC;
 
-  DEBUG_TOPOLOGY("delete all topology tuples with T_last_addr = %d and T_seq = %d",
+  DEBUG_TOPOLOGY("delete all topology tuples with T_last_addr = %d and T_seq < %d",
                  header->addr, tc_header->ansn);
   DEBUG_INC;
   FOREACH_TOPOLOGY_EREW(
@@ -177,6 +192,14 @@ olsr_process_tc_message(packet_byte_t* tc_message, int size, interface_t iface)
   }
   DEBUG_DEC;
   olsr_global_mutex_give();
+}
+
+olsr_topology_tuple_t*
+olsr_topology_set_insert(const olsr_topology_tuple_t* tuple)
+{
+  if (tuple->T_dest_addr == state.address)
+    return NULL;
+  return olsr_topology_set_insert_(tuple);
 }
 
 void

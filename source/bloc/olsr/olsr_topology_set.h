@@ -52,7 +52,13 @@ typedef struct
 } olsr_topology_tuple_t;
 
 SET_DECLARE(topology, TOPOLOGY_SET_MAX_SIZE)
-SET_DEFAULT_BINDINGS(topology)
+SET_DEFAULT_INIT(topology)
+SET_DEFAULT_EMPTY(topology)
+SET_DEFAULT_DELETE(topology)
+SET_DEFAULT_APPLY(topology)
+SET_DEFAULT_FIND(topology)
+SET_DEFAULT_IS_EMPTY(topology)
+SET_DEFAULT_DECLARE_EMPTY(topology)
 
 # define FOREACH_TOPOLOGY_CREW(Var, Code)       \
   SET_FOREACH(topology, Var, Code)
@@ -67,12 +73,11 @@ int olsr_generate_tc_message(olsr_message_t* tc_message);
 void olsr_process_tc_message(packet_byte_t* tc_message, int size,
                              interface_t iface);
 void olsr_tc_force_send();
+olsr_topology_tuple_t*
+olsr_topology_set_insert(const olsr_topology_tuple_t* tuple);
 
-#ifdef DEBUG
+# ifdef DEBUG
 void olsr_topology_set_print();
-#endif
-
-
-
+# endif
 
 #endif
