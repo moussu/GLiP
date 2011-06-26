@@ -9,8 +9,9 @@
 
 #include "olsr.h"
 #include "olsr_constants.h"
-#include "olsr_receive.h"
+#include "olsr_message.h"
 #include "olsr_packet.h"
+#include "olsr_receive.h"
 #include "comm/simulator.h"
 
 #if defined DEBUG || defined SIMULATOR_DEBUG
@@ -20,6 +21,7 @@
 # include "olsr_ms_set.h"
 # include "olsr_neighbor_set.h"
 # include "olsr_neighbor2_set.h"
+# include "olsr_topology_set.h"
 #endif
 
 
@@ -112,31 +114,31 @@ olsr_receive_task(void* pvParameters)
 #ifdef DEBUG
     if ((i = (i + 1) % 100) == 0)
     {
-      //olsr_duplicate_set_print();
-      //olsr_link_set_print();
+      olsr_duplicate_set_print();
+      olsr_link_set_print();
       //olsr_mpr_set_print();
       olsr_ms_set_print();
       //olsr_neighbor_set_print();
       //olsr_neighbor2_set_print();
+      olsr_topology_set_print();
     }
 #endif
 
     for (int iface = 0; iface < IFACES_COUNT; iface++)
     {
       // Timeout should be 0 here, but if so task starves sending task...
-      if(!xQueueReceive(receive_queues[iface], &packet, 1 / portTICK_RATE_MS))
+      if(!xQueueReceive(receive_queues[iface], &packet, 10 / portTICK_RATE_MS))
         continue;
 
-      DEBUG_RECEIVE("received packet[size:%d] <- iface %c",
-                    packet.header.length, olsr_iface_print(iface));
+      DEBUG_RECEIVE("received packet[size:%d, sn:%d] <- iface %c",
+                    packet.header.length,
+                    packet.header.sn,
+                    olsr_iface_print(iface));
       DEBUG_INC;
 
       olsr_process_packet(&packet, iface);
 
       DEBUG_DEC;
     }
-
-    // FIXME: as it is not used yet, it is not cleaned.
-    FOREACH_NEIGHBOR2_EREW(n, ;);
   }
 }

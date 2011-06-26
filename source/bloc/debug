@@ -47,12 +47,12 @@ for port in $ports; do
         xterm)
             #if [ "$bg" != "-rv" ]; then bg="-rv"; else bg=""; fi
             wait="while ! lsof -i udp:$server > /dev/null; do sleep 0.1s; done;"
-            gdb="gdb -q -ex run --args main $port"
+            gdb="gdb -x .gdbinit -q -ex run --args main $port"
             xterm $bg -e zsh -c "$wait $gdb" &
             sleep 0.1s
             ;;
         xemacs)
-            gdb="./gdb -x .gdbinit --annotate=3 -q -ex run --args main $port"
+            gdb="./gdb -x .gdbinit --annotate=3 -q --args main $port"
             emacs main.c --eval "(gdb \"$gdb\")" &
             ;;
     esac

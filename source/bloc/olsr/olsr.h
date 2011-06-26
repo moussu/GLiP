@@ -8,5 +8,7 @@
 
 void olsr_init(address_t address);
 void olsr_receive_callback(int iSocket, void* pvContext);
+void olsr_global_mutex_take();
+void olsr_global_mutex_give();
 
 #endif

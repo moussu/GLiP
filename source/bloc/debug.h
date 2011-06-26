@@ -7,19 +7,8 @@
 typedef enum
 {
   WHITE = 0,
-  GRAY,
-  YELLOW,
-  BLUE,
-  GREEN,
-  RED,
-  PURPLE,
-  PINK,
-  LRED,
-  LGREEN,
-  LBLUE,
-  LYELLOW,
-  LPURPLE,
-  LPINK,
+  GRAY, YELLOW, BLUE, GREEN, RED, PURPLE, PINK,
+  LYELLOW, LBLUE, LGREEN, LRED, LPURPLE, LPINK,
 } color_t;
 
 extern int debug;
@@ -55,8 +44,7 @@ void textcolor(color_t color);
 //  DEBUG_PRINT(S, LBLUE, ##__VA_ARGS__)
 
 #  define DEBUG_RECEIVE(S, ...)                 \
-
-//  DEBUG_PRINT(S, LGREEN, ##__VA_ARGS__)
+  DEBUG_PRINT(S, LGREEN, ##__VA_ARGS__)
 
 #  define DEBUG_HELLO(S, ...)                   \
 
@@ -66,10 +54,12 @@ void textcolor(color_t color);
   DEBUG_PRINT(S, LPURPLE, ##__VA_ARGS__)
 
 #  define DEBUG_LINK(S, ...)                    \
-  DEBUG_PRINT(S, PURPLE, ##__VA_ARGS__)
+
+//  DEBUG_PRINT(S, PURPLE, ##__VA_ARGS__)
 
 #  define DEBUG_MPR(S, ...)                     \
-  DEBUG_PRINT(S, BLUE, ##__VA_ARGS__)
+
+//  DEBUG_PRINT(S, BLUE, ##__VA_ARGS__)
 
 #  define DEBUG_MS(S, ...)                      \
   DEBUG_PRINT(S, RED, ##__VA_ARGS__)
@@ -82,6 +72,9 @@ void textcolor(color_t color);
 
 #  define DEBUG_DUPLICATE(S, ...)               \
   DEBUG_PRINT(S, GREEN, ##__VA_ARGS__)
+
+#  define DEBUG_TOPOLOGY(S, ...)                \
+  DEBUG_PRINT(S, GRAY, ##__VA_ARGS__)
 
 #  define MPR(S, ...)                                  \
   DEBUG_MPR(S, ##__VA_ARGS__);                         \
@@ -100,6 +93,14 @@ void textcolor(color_t color);
 #  define DEBUG_SEND(S, ...)
 #  define DEBUG_RECEIVE(S, ...)
 #  define DEBUG_HELLO(S, ...)
+#  define DEBUG_SET(S, ...)
+#  define DEBUG_LINK(S, ...)
+#  define DEBUG_MPR(S, ...)
+#  define DEBUG_MS(S, ...)
+#  define DEBUG_NEIGHBOR(S, ...)
+#  define DEBUG_NEIGHBOR2(S, ...)
+#  define DEBUG_DUPLICATE(S, ...)
+#  define DEBUG_TOPOLOGY(S, ...)
 # endif
 
 #endif

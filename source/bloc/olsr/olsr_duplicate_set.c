@@ -55,7 +55,7 @@ olsr_already_forwarded(address_t addr, seq_num_t sn, interface_t iface)
 }
 
 bool
-olsr_has_to_be_forwarded(address_t addr, seq_num_t sn, interface_t iface, int* n)
+olsr_has_to_be_forwarded(address_t addr, seq_num_t sn, interface_t iface)
 {
   bool forwarding = TRUE;
 
@@ -63,11 +63,6 @@ olsr_has_to_be_forwarded(address_t addr, seq_num_t sn, interface_t iface, int* n
     if (tuple->addr == addr
         && tuple->sn == sn)
     {
-      if (n)
-        *n = __i_duplicate;
-      // FIXME: Is that really correct ?
-      //
-
       if (tuple->retrans)
       {
         forwarding = FALSE;
@@ -85,8 +80,7 @@ olsr_has_to_be_forwarded(address_t addr, seq_num_t sn, interface_t iface, int* n
 
       if (!forwarding)
         break;
-    }
-  )
+    });
 
   return forwarding;
 }

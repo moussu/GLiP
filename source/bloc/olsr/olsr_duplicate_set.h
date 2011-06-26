@@ -31,8 +31,7 @@ SET_DEFAULT_BINDINGS(duplicate)
 void olsr_duplicate_tuple_init(olsr_duplicate_tuple_t* t);
 bool olsr_already_processed(address_t addr, seq_num_t sn);
 bool olsr_already_forwarded(address_t addr, seq_num_t sn, interface_t iface);
-bool olsr_has_to_be_forwarded(address_t addr, seq_num_t sn, interface_t iface,
-                              int* n);
+bool olsr_has_to_be_forwarded(address_t addr, seq_num_t sn, interface_t iface);
 
 # ifdef DEBUG
 void olsr_duplicate_set_print();

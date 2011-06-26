@@ -1,8 +1,11 @@
+#include <stdlib.h>
+
 #include <FreeRTOS.h>
 #include <task.h>
 #include <semphr.h>
 
 #include "utils/max.h"
+#include "olsr.h"
 #include "olsr_hello.h"
 #include "olsr_message.h"
 #include "olsr_constants.h"
@@ -16,38 +19,17 @@
 #include "olsr_send.h"
 #include "olsr_time.h"
 
-static xSemaphoreHandle process_generate_mutex;
-/*static xSemaphoreHandle force_send_mutex;
-  static bool force_send = FALSE;*/
-static void olsr_hello_task1(void* pvParameters);
-//static void olsr_hello_task2(void* pvParameters);
-
+static xSemaphoreHandle force_send_mutex;
+static void olsr_hello_task(void* pvParameters);
 
 void
 olsr_hello_init()
 {
-  //force_send_mutex = xSemaphoreCreateMutex();
-  process_generate_mutex = xSemaphoreCreateMutex();
-  xTaskCreate(olsr_hello_task1,
-              (signed portCHAR*) "helloTask1",
+  force_send_mutex = xSemaphoreCreateRecursiveMutex();
+  xTaskCreate(olsr_hello_task,
+              (signed portCHAR*) "helloTask",
               configMINIMAL_STACK_SIZE, NULL,
               tskIDLE_PRIORITY, NULL);
-  /*xTaskCreate(olsr_hello_task2,
-    (signed portCHAR*) "helloTask2",
-    configMINIMAL_STACK_SIZE, NULL,
-    tskIDLE_PRIORITY, NULL);*/
-}
-
-void
-olsr_hello_mutex_take()
-{
-  xSemaphoreTake(process_generate_mutex, portMAX_DELAY);
-}
-
-void
-olsr_hello_mutex_give()
-{
-  xSemaphoreGive(process_generate_mutex);
 }
 
 /*
@@ -121,7 +103,7 @@ olsr_process_hello_message(packet_byte_t* message, int size,
               header->size, header->sn, Vtime);
   DEBUG_INC;
 
-  olsr_hello_mutex_take();
+  olsr_global_mutex_take();
 
   // Link set:
 
@@ -158,13 +140,9 @@ olsr_process_hello_message(packet_byte_t* message, int size,
         (olsr_link_message_hdr_t*)cursor;
 
       link_type_t lt = olsr_link_type(link_header->link_code);
-#ifdef DEBUG
-      //neighbor_type_t nt = olsr_neighbor_type(link_header->link_code);
-#endif
 
-      DEBUG_HELLO("link tuple [size:%d, nt:%s, lt:%s, lc:0x%x]",
+      DEBUG_HELLO("link tuple [size:%d, lt:%s, lc:0x%x]",
                   link_header->size,
-                  olsr_neighbor_type_str(nt),
                   olsr_link_type_str(lt),
                   link_header->link_code);
 
@@ -245,10 +223,6 @@ olsr_process_hello_message(packet_byte_t* message, int size,
     DEBUG_HELLO("parsing link messages starting at %p, stopping at %p",
                 cursor, end);
 
-#ifdef DEBUG
-    //int i = 0;
-#endif
-
     while (cursor < end)
     {
       olsr_link_message_hdr_t* link_header =
@@ -260,8 +234,8 @@ olsr_process_hello_message(packet_byte_t* message, int size,
 
       neighbor_type_t nt = olsr_neighbor_type(link_header->link_code);
 
-      DEBUG_HELLO("link message [n:%d, size:%d, cursor:%p, nt:%s]",
-                  i++, link_header->size, cursor,
+      DEBUG_HELLO("link message [size:%d, cursor:%p, nt:%s]",
+                  link_header->size, cursor,
                   olsr_neighbor_type_str(nt));
       DEBUG_INC;
 
@@ -375,7 +349,7 @@ olsr_process_hello_message(packet_byte_t* message, int size,
     }
   }
 
-  olsr_hello_mutex_give();
+  olsr_global_mutex_give();
 
   DEBUG_DEC;
 }
@@ -434,7 +408,7 @@ olsr_generate_hello(olsr_message_t* hello_message, interface_t iface)
 
   DEBUG_INC;
 
-  olsr_hello_mutex_take();
+  olsr_global_mutex_take();
 
   olsr_neighbor_reset_advertised();
 
@@ -495,35 +469,25 @@ olsr_generate_hello(olsr_message_t* hello_message, interface_t iface)
 
   DEBUG_HELLO("hello message size (headers + content) is %d", hello_message->header.size);
 
-  olsr_hello_mutex_give();
+  olsr_global_mutex_give();
 }
 
 void
 olsr_hello_force_send()
 {
-  // FIXME: implement.
-  //force_send = TRUE;
+  // FIXME: doesn't work, deadlock...
+  /*
+  if(!xSemaphoreTake(force_send_mutex, 0))
+    return;
+
+  olsr_hello_send_ifaces();
+
+  xSemaphoreGive(force_send_mutex);
+  */
 }
 
 static void
-olsr_hello_task1(void* pvParameters)
-{
-  portTickType xLastWakeTime = xTaskGetTickCount();
-
-  for (;;)
-  {
-    //xSemaphoreTake(force_send_mutex, portMAX_DELAY);
-    olsr_hello_send_ifaces();
-
-    //xSemaphoreGive(force_send_mutex);
-
-    vTaskDelayUntil(&xLastWakeTime,
-                    HELLO_INTERVAL_S * 1000 - MAXJITTER_MS);
-  }
-}
-
-/*static void
-olsr_hello_task2(void* pvParameters)
+olsr_hello_task(void* pvParameters)
 {
   portTickType xLastWakeTime = xTaskGetTickCount();
 
@@ -531,11 +495,11 @@ olsr_hello_task2(void* pvParameters)
   {
     xSemaphoreTake(force_send_mutex, portMAX_DELAY);
 
-    if (force_send)
-      olsr_hello_send_ifaces();
+    olsr_hello_send_ifaces();
 
     xSemaphoreGive(force_send_mutex);
 
-    vTaskDelayUntil(&xLastWakeTime, 100);
+    vTaskDelayUntil(&xLastWakeTime,
+                    HELLO_INTERVAL_S * 1000 - MAXJITTER_MS);
   }
-  }*/
+}

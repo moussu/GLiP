@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "olsr_constants.h"
+#include "olsr_message.h"
 
 #define CASE(E)                                 \
   case E:                                       \
@@ -67,6 +68,23 @@ olsr_link_status_str(link_status_t s)
     CASE(SYM);
     default:
       printf("ERROR:%d", s);
+      exit(1);
+      return buf;
+  }
+}
+
+const char*
+olsr_message_type_str(message_type_t t)
+{
+  static char buf[32];
+  switch (t)
+  {
+    CASE(HELLO_MESSAGE);
+    CASE(TC_MESSAGE);
+    CASE(MID_MESSAGE);
+    CASE(HNA_MESSAGE);
+    default:
+      printf("ERROR:%d", t);
       exit(1);
       return buf;
   }
