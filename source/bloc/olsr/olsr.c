@@ -15,6 +15,7 @@
 #include "olsr_neighbor_set.h"
 #include "olsr_topology_set.h"
 #include "olsr_receive.h"
+#include "olsr_routing_table.h"
 #include "olsr_send.h"
 #include "olsr_hello.h"
 
@@ -58,6 +59,7 @@ olsr_init(address_t uid)
   olsr_neighbor_set_init();
   olsr_neighbor2_set_init();
   olsr_topology_set_init();
+  olsr_routing_set_init();
 
   // Initialize services:
   olsr_send_init();
