@@ -143,6 +143,8 @@ olsr_receive_task(void* pvParameters)
       DEBUG_DEC;
     }
 
+    olsr_global_mutex_take();
     olsr_routing_table_compute();
+    olsr_global_mutex_give();
   }
 }
