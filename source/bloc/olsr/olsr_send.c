@@ -101,7 +101,7 @@ olsr_send_task(void* pvParameters)
   //static int current_message_sn = 0;
   olsr_packet_t packet;
   packet_byte_t* write_position;
-  packet_byte_t* end;
+  packet_byte_t* end __attribute__((unused));
   olsr_message_t message;
   portTickType xLastWakeTime = xTaskGetTickCount();
 

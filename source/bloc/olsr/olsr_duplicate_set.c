@@ -123,7 +123,7 @@ void olsr_duplicate_set_print()
     d,
     const char* used_slot = "X";
     const char* free_slot = " ";
-    const char* ifaces[IFACES_COUNT];
+    const char* ifaces[IFACES_COUNT] __attribute__((unused));
     for (int i = 0; i < IFACES_COUNT; i++)
       ifaces[i] = free_slot;
     for (int i = 0; i < d->n_ifaces; i++)
