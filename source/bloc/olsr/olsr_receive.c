@@ -106,8 +106,9 @@ static void
 olsr_receive_task(void* pvParameters)
 {
   olsr_packet_t packet;
+
 #ifdef DEBUG
-  int i = -1;
+  int i __attribute__((unused)) = -1;
 #endif
 
   for (;;)

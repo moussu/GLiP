@@ -10,7 +10,7 @@ package simulator.ether {
     import Block._
 
     val port    = 4444
-    val bufsize = 1024
+    val bufsize = 65535
     val buffer  = new Array[Byte](bufsize)
     val socket  = new DatagramSocket(port)
     val packet  = new DatagramPacket(buffer, bufsize)

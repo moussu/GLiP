@@ -6,6 +6,8 @@
 #include "olsr_neighbor2_set.h"
 #include "olsr_state.h"
 
+#define MPR_ALGORITHM
+
 SET_IMPLEMENT(mpr, MPR_SET_MAX_SIZE)
 SET_IMPLEMENT(N,   MPR_SET_MAX_SIZE)
 SET_IMPLEMENT_(N2, neighbor2, MPR_SET_MAX_SIZE)
@@ -283,7 +285,8 @@ olsr_mpr_set_recompute()
   DEBUG_MPR("recomputing MPR set, first empty it");
   olsr_mpr_set_empty();
 
-  /*DEBUG_MPR("foreach iface, update it");
+#ifdef MPR_ALGORITHM
+  DEBUG_MPR("foreach iface, update it");
   DEBUG_INC;
   for (int iface = 0; iface < IFACES_COUNT; iface++)
   {
@@ -292,11 +295,12 @@ olsr_mpr_set_recompute()
     olsr_mpr_set_compute_iface(iface);
     DEBUG_DEC;
   }
-  DEBUG_DEC;*/
-
+  DEBUG_DEC;
+#else
   FOREACH_NEIGHBOR(
     n,
     olsr_mpr_set_insert(n->N_neighbor_main_addr));
+#endif
 
   is_recomputing = FALSE;
 

@@ -5,7 +5,7 @@
 # include "udp_comm.h"
 
 # define SIMULATOR_PORT 4444
-# define SIMULATOR_BUFSIZE 1024
+# define SIMULATOR_BUFSIZE 65535
 
 typedef struct
 {

@@ -129,7 +129,8 @@ olsr_default_forward(packet_byte_t* message, int size, interface_t iface)
     return;
 
   bool must_be_retransmited =
-    olsr_is_ms(header->addr) && header->ttl > 1;
+    olsr_is_ms(olsr_iface_to_main_address(header->source_addr))
+    && header->ttl > 1;
 
   bool exists = FALSE;
   FOREACH_DUPLICATE_EREW(tuple,
@@ -163,7 +164,10 @@ olsr_default_forward(packet_byte_t* message, int size, interface_t iface)
   }
 
   if (!must_be_retransmited)
+  {
+    DEBUG_RECEIVE("not retransmiting");
     return;
+  }
 
   new_header.ttl--;
   new_header.hops++;
