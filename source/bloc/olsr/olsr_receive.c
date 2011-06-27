@@ -12,6 +12,7 @@
 #include "olsr_message.h"
 #include "olsr_packet.h"
 #include "olsr_receive.h"
+#include "olsr_routing_table.h"
 #include "comm/simulator.h"
 
 #if defined DEBUG || defined SIMULATOR_DEBUG
@@ -121,6 +122,7 @@ olsr_receive_task(void* pvParameters)
       olsr_neighbor_set_print();
       olsr_neighbor2_set_print();
       olsr_topology_set_print();
+      olsr_routing_table_print();
     }
 #endif
 
@@ -140,5 +142,7 @@ olsr_receive_task(void* pvParameters)
 
       DEBUG_DEC;
     }
+
+    olsr_routing_table_compute();
   }
 }
