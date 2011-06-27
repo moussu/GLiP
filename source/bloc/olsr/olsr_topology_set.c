@@ -28,7 +28,9 @@ void
 olsr_topology_tuple_init(olsr_topology_tuple_t* tuple)
 {
   tuple->T_dest_addr = 0;
+  tuple->T_dest_iface = 0;
   tuple->T_last_addr = 0;
+  tuple->T_last_iface = 0;
   tuple->T_seq = 0;
   tuple->T_time = 0;
 }
@@ -57,7 +59,23 @@ olsr_generate_tc_message(olsr_message_t* tc_message)
   FOREACH_MS_EREW(
     ms,
     DEBUG_TOPOLOGY("appending address %d", ms->MS_main_addr);
-    olsr_message_append(tc_message, &(ms->MS_main_addr), sizeof(address_t));
+    olsr_link_tuple_t* link = NULL;
+    FOREACH_LINK_EREW(
+      l,
+      if (olsr_iface_to_main_address(l->L_neighbor_iface_addr)
+          == ms->MS_main_addr)
+      {
+        link = l;
+        break;
+      });
+
+    if (!link)
+      continue;
+
+    olsr_message_append(tc_message, &(link->L_local_iface_addr),
+                        sizeof(address_t));
+    olsr_message_append(tc_message, &(link->L_neighbor_iface_addr),
+                        sizeof(address_t));
     n++);
   DEBUG_DEC;
 
@@ -143,13 +161,18 @@ olsr_process_tc_message(packet_byte_t* tc_message, int size, interface_t iface)
   DEBUG_TOPOLOGY("analysing the %d addresses of the TC message [start:%p]:",
                  n_addresses, cursor);
   DEBUG_INC;
-  for (int i = 0; i < n_addresses; i++)
+  for (int i = 0; i < n_addresses / 2; i++)
   {
-    const address_t addr = (*cursor) & 0xffff;
-
-    DEBUG_TOPOLOGY("address is %d [cursor:%p]", addr, cursor);
+    const address_t source_iface = (*cursor) & 0xffff;
 
     cursor++;
+
+    const address_t iface = (*cursor) & 0xffff;
+    const address_t addr = olsr_iface_to_main_address(iface);
+
+    cursor++;
+
+    DEBUG_TOPOLOGY("address is %d", addr);
 
     DEBUG_TOPOLOGY("searching for an existing topology tuple "
                    "with with T_dest_addr = %d and T_last_addr = %d",
@@ -175,7 +198,9 @@ olsr_process_tc_message(packet_byte_t* tc_message, int size, interface_t iface)
       olsr_topology_tuple_t tuple =
         {
           .T_dest_addr = addr,
+          .T_dest_iface = iface,
           .T_last_addr = header->addr,
+          .T_last_iface = source_iface,
           .T_seq = tc_header->ansn,
           .T_time = olsr_get_current_time() + Vtime,
         };
@@ -287,19 +312,25 @@ void olsr_topology_set_print()
   DEBUG_TOPOLOGY("current time is %d", (int)olsr_get_current_time());
   DEBUG_TOPOLOGY("");
 
-  DEBUG_TOPOLOGY(".-%s-.-%s-.-%s-.-%s-.",
+  DEBUG_TOPOLOGY(".-%s-.-%s-.-%s-.-%s-.-%s-.-%s-.",
+                  DASHES(10),
+                  DASHES(10),
                   DASHES(10),
                   DASHES(10),
                   DASHES(10),
                   DASHES(10));
 
-  DEBUG_TOPOLOGY("| %10s | %10s | %10s | %10s |",
+  DEBUG_TOPOLOGY("| %10s | %10s | %10s | %10s | %10s | %10s |",
                  "dest addr",
+                 "dest iface",
                  "last addr",
+                 "last iface",
                  "sn",
                  "time");
 
-  DEBUG_TOPOLOGY("+-%s-+-%s-+-%s-+-%s-+",
+  DEBUG_TOPOLOGY("+-%s-+-%s-+-%s-+-%s-+-%s-+-%s-+",
+                 DASHES(10),
+                 DASHES(10),
                  DASHES(10),
                  DASHES(10),
                  DASHES(10),
@@ -307,14 +338,18 @@ void olsr_topology_set_print()
 
   FOREACH_TOPOLOGY_CREW(
     t,
-    DEBUG_TOPOLOGY("| %10d | %10d | %10d | %10d |",
+    DEBUG_TOPOLOGY("| %10d | %10d | %10d | %10d | %10d | %10d |",
                    t->T_dest_addr,
+                   t->T_dest_iface,
                    t->T_last_addr,
+                   t->T_last_iface,
                    t->T_seq,
                    t->T_time);
     );
 
-  DEBUG_TOPOLOGY("'-%s-'-%s-'-%s-'-%s-'",
+  DEBUG_TOPOLOGY("'-%s-'-%s-'-%s-'-%s-'-%s-'-%s-'",
+                 DASHES(10),
+                 DASHES(10),
                  DASHES(10),
                  DASHES(10),
                  DASHES(10),

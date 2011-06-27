@@ -46,7 +46,9 @@ typedef struct
 typedef struct
 {
   address_t T_dest_addr;
+  address_t T_dest_iface;
   address_t T_last_addr;
+  address_t T_last_iface;
   seq_num_t T_seq;
   olsr_time_t T_time;
 } olsr_topology_tuple_t;
