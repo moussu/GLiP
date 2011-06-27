@@ -8,7 +8,7 @@
 # include "olsr_time.h"
 # include "olsr_types.h"
 
-# define DUPLICATE_SET_MAX_SIZE 100
+# define DUPLICATE_SET_MAX_SIZE 65535
 typedef struct
 {
   address_t   addr;

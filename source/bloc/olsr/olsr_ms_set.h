@@ -6,7 +6,7 @@
 # include "olsr_types.h"
 # include "olsr_time.h"
 
-# define MS_SET_MAX_SIZE 10
+# define MS_SET_MAX_SIZE 100
 typedef struct
 {
   address_t MS_main_addr;
