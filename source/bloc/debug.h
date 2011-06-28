@@ -54,6 +54,9 @@ void textcolor(color_t color);
 #  define DEBUG_APPLI(S, ...)                   \
   DEBUG_PRINT(S, LPINK, ##__VA_ARGS__)
 
+#  define DEBUG_APPLI2(S, ...)                  \
+  DEBUG_PRINT(S, LPINK, ##__VA_ARGS__)
+
 #  define DEBUG_LINK(S, ...)                    \
   DEBUG_PRINT(S, PURPLE, ##__VA_ARGS__)
 
