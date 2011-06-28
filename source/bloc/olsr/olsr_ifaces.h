@@ -15,6 +15,12 @@ typedef enum
 char olsr_iface_print(interface_t iface);
 int olsr_iface_parse(char c, interface_t* iface);
 
+inline interface_t
+olsr_get_interface(address_t iface_address)
+{
+  return (iface_address & 0x3);
+}
+
 inline address_t
 olsr_get_interface_address(address_t main_address,
                            interface_t iface)
