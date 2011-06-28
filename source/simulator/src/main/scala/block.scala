@@ -1,6 +1,7 @@
 import processing.core._
 import PConstants._
 import java.awt.Rectangle
+import scala.util.Random
 
 package simulator.view {
 
@@ -56,8 +57,8 @@ package simulator.view {
 
   class Block(var x: Int, var y: Int) {
     import Block._
-
-    private var angle = 0
+    private val _rand: Random = new Random()
+    private var angle = 0 //_rand.nextInt(4) * 90
     var leds: Array[Array[Led]] = Array.ofDim(layout(0), layout(1))
     val id = count + 1
     count = id
