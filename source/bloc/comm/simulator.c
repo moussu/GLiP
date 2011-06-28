@@ -26,7 +26,7 @@ simulator_init(int server_port, socket_callback_t callback)
   {
     fprintf(stderr, "Error: expected pUID message received '%s'\n",
             buffer);
-    exit(1);
+    abort();
   }
 
   id = atoi(buffer + 1);

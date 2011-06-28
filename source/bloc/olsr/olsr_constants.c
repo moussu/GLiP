@@ -3,47 +3,55 @@
 #include "olsr_constants.h"
 #include "olsr_message.h"
 
-#define CASE(E)                                 \
-  case E:                                       \
+#define CASE(E)                                \
+  case E:                                      \
   return #E
+
+static const char* message = "ERROR:%d";
+
+#ifdef DEBUG
+# define DEFAULT(Var)                           \
+  default:                                      \
+  printf(message, Var);                         \
+  abort()
+# else
+# define DEFAULT                                \
+  default:                                      \
+  sprintf(buf, message, t);                     \
+  return buf
+# endif
 
 const char*
 olsr_neighbor_type_str(neighbor_type_t t)
 {
-  static char buf[32];
+  static char buf[32] __attribute__((unused));
   switch (t)
   {
     CASE(NOT_NEIGH);
     CASE(SYM_NEIGH);
     CASE(MPR_NEIGH);
-    default:
-      printf("ERROR:%d", t);
-      exit(1);
-      return buf;
+    DEFAULT(t);
   }
 }
 
 const char*
 olsr_link_type_str(link_type_t t)
 {
-  static char buf[32];
+  static char buf[32] __attribute__((unused));
   switch (t)
   {
     CASE(UNSPEC_LINK);
     CASE(ASYM_LINK);
     CASE(SYM_LINK);
     CASE(LOST_LINK);
-    default:
-      printf("ERROR:%d", t);
-      exit(1);
-      return buf;
+    DEFAULT(t);
   }
 }
 
 const char*
 olsr_willingness_str(willingness_t w)
 {
-  static char buf[32];
+  static char buf[32] __attribute__((unused));
   switch (w)
   {
     CASE(WILL_NEVER);
@@ -51,41 +59,32 @@ olsr_willingness_str(willingness_t w)
     CASE(WILL_DEFAULT);
     CASE(WILL_HIGH);
     CASE(WILL_ALWAYS);
-    default:
-      printf("ERROR:%d", w);
-      exit(1);
-      return buf;
+    DEFAULT(w);
   }
 }
 
 const char*
 olsr_link_status_str(link_status_t s)
 {
-  static char buf[32];
+  static char buf[32] __attribute__((unused));
   switch (s)
   {
     CASE(NOT_SYM);
     CASE(SYM);
-    default:
-      printf("ERROR:%d", s);
-      exit(1);
-      return buf;
+    DEFAULT(s);
   }
 }
 
 const char*
 olsr_message_type_str(message_type_t t)
 {
-  static char buf[32];
+  static char buf[32] __attribute__((unused));
   switch (t)
   {
     CASE(HELLO_MESSAGE);
     CASE(TC_MESSAGE);
     CASE(MID_MESSAGE);
     CASE(HNA_MESSAGE);
-    default:
-      printf("ERROR:%d", t);
-      exit(1);
-      return buf;
+    DEFAULT(t);
   }
 }
