@@ -55,10 +55,8 @@ package simulator.view {
     def relativeStopY():  Int =   height / 2 + 1
   }
 
-  class Block(var x: Int, var y: Int) {
+  class Block(var x: Int, var y: Int, var angle: Int) {
     import Block._
-    private val _rand: Random = new Random()
-    private var angle = 0 //_rand.nextInt(4) * 90
     var leds: Array[Array[Led]] = Array.ofDim(layout(0), layout(1))
     val id = count + 1
     count = id
@@ -67,7 +65,16 @@ package simulator.view {
       leds(i)(j) = new Led()
     }
 
-    def this() = this(0, 0)
+    private val rand: Random = new Random()
+
+    def this() = this(0, 0, 0)
+    def this(randomAngle: Boolean) = {
+      this(0, 0, 0)
+      if (randomAngle)
+        angle = rand.nextInt(4) * 90
+      else
+        angle = 0
+    }
 
     def startX(): Int = x + relativeStartX
     def startY(): Int = y + relativeStartY

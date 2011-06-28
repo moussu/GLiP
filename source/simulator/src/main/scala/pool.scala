@@ -5,7 +5,8 @@ import simulator.ether._
 
 package simulator.view {
 
-  class Pool(val model: Model, val windowWidth: Int, val windowHeight: Int) {
+  class Pool(val model: Model, val windowWidth: Int, val windowHeight: Int,
+             var randomAngle: Boolean) {
     import Model._
     import Block._
 
@@ -41,7 +42,7 @@ package simulator.view {
       if (k <= l) (k, l) else (l, 2 * l - k)
 
     def addBlock(): Block = {
-      val block: Block = new Block()
+      val block: Block = new Block(randomAngle)
       val (i, j) = nextIJ(k, l)
       val x = j * (Block.width  + padding) + offsetX(maxWidth)
       val y = i * (Block.height + padding) + offsetY(maxHeight)
@@ -68,7 +69,7 @@ package simulator.view {
       val offsetY = this.offsetY(height)
 
       for (i <- 0 until n; j <- 0 until n) {
-        val block: Block = new Block()
+        val block: Block = new Block(randomAngle)
 
         val x: Int = j * (Block.width  + padding) + offsetX
         val y: Int = i * (Block.height + padding) + offsetY
