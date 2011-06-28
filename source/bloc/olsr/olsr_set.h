@@ -10,6 +10,12 @@
 # include "olsr_time.h"
 # include "utils/max.h"
 
+# ifdef DEBUG
+#  define SET_ABORT abort()
+# else
+#  define SET_ABORT
+# endif
+
 # define SET_FOREACH___(Name, Code)                     \
   for (int __i_##Name = 0;                              \
        __i_##Name < Name##_set.max_size;                \
@@ -141,7 +147,7 @@
     if (Name##_set.full)                                                \
     {                                                                   \
       DEBUG_SET(#Name " set full! [max_size:%d]", Name##_set.max_size); \
-      exit(1);                                                          \
+      SET_ABORT;                                                        \
       return NULL;                                                      \
     }                                                                   \
                                                                         \

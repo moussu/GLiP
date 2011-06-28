@@ -37,12 +37,23 @@ olsr_send_message_copy(olsr_message_t* message,
   if (content_size > MAX_MESSAGE_CONTENT_SIZE)
   {
     DEBUG_SEND("MAX_MESSAGE_CONTENT_SIZE overflow");
-    exit(1);
+#ifdef DEBUG
+    abort();
+#else
+    // FIXME: here we maybe need to put a special pattern
+    // at the end of packets to avoid one to be processed
+    // when not complete because of the overflow.
+    return;
+#endif
   }
   if (header->ttl == 0)
   {
     DEBUG_SEND("sending message with TTL = 0");
-    exit(1);
+#ifdef DEBUG
+    abort();
+#else
+    return;
+#endif
   }
   message->header = *header;
   message->header.size = content_size + sizeof(olsr_message_hdr_t);
