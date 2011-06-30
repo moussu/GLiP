@@ -78,16 +78,6 @@ void textcolor(color_t color);
 #  define DEBUG_TOPOLOGY(S, ...)                \
   DEBUG_PRINT(S, GRAY, ##__VA_ARGS__)
 
-#  define MPR(S, ...)                                  \
-  DEBUG_MPR(S, ##__VA_ARGS__);                         \
-  DEBUG_INC;                                           \
-  olsr_neighbor_set_print();                           \
-  olsr_N_set_print();                                  \
-  olsr_neighbor2_set_print();                          \
-  olsr_N2_set_print();                                 \
-  olsr_mpr_set_print();                                \
-  DEBUG_DEC;
-
 # else
 #  define DEBUG_SET_ID(Id)
 #  define DEBUG_PRINT(S, ...)

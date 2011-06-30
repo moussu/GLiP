@@ -9,9 +9,6 @@
 
 SET_IMPLEMENT(link, LINK_SET_MAX_SIZE)
 
-#undef DEBUG_LINK
-#define DEBUG_LINK(S, ...)
-
 /*
      -    The L_SYM_time field of a link tuple expires.  This is
           considered as a neighbor loss if the link described by the
@@ -279,10 +276,6 @@ olsr_is_iface_neighbor(address_t iface_address,
 
   return FALSE;
 }
-
-# undef DEBUG_LINK
-#  define DEBUG_LINK(S, ...)                    \
-  DEBUG_PRINT(S, PURPLE, ##__VA_ARGS__)
 
 #ifdef DEBUG
 void olsr_link_set_print()
