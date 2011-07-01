@@ -130,7 +130,8 @@ olsr_receive_task(void* pvParameters)
     for (int iface = 0; iface < IFACES_COUNT; iface++)
     {
       // Timeout should be 0 here, but if so task starves sending task...
-      if(!xQueueReceive(receive_queues[iface], &packet, 10 / portTICK_RATE_MS))
+      if(!xQueueReceive(receive_queues[iface], &packet,
+                        RECV_INTERVAL_MS / portTICK_RATE_MS))
         continue;
 
       DEBUG_RECEIVE("received packet[size:%d, sn:%d] <- iface %s",
