@@ -4,12 +4,13 @@ PROGRAM = main
 SRCS = $(filter %.c,$(shell git ls-files))
 
 # Object files
-OBJS = $(notdir $(SRCS:.c=.o)) tasks.o queue.o port.o list.o heap_3.o croutine.o
+OBJS = $(notdir $(SRCS:.c=.o)) tasks.o queue.o 		\
+	port.o list.o heap_3.o croutine.o
 
 include ../Makefile.inc
 
 DIRS = olsr utils watchdog comm AsyncIO
-CFLAGS += -D_GNU_SOURCE -DDEBUG -include debug.h
+CFLAGS += -D_GNU_SOURCE -DDEBUG -DWARNINGS -DERRORS -include debug.h
 CFLAGS += $(addprefix -I,$(DIRS))
 VPATH += $(DIRS)
 

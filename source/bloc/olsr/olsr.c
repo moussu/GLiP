@@ -293,11 +293,11 @@ olsr_mesh_north_of_(address_t addr1, address_t addr2,
   if (addr1 == addr2)
   {
     *north = NORTH_IFACE;
-    DEBUG_APPLI2("found addr:%d", addr2);
+    DEBUG_APPLI("found addr:%d", addr2);
     return TRUE;
   }
 
-  DEBUG_APPLI2("addr1:%d addr2:%d", addr1, addr2);
+  DEBUG_APPLI("addr1:%d addr2:%d", addr1, addr2);
 
   FOREACH(
     n,
@@ -321,7 +321,7 @@ olsr_mesh_north_of_(address_t addr1, address_t addr2,
         interface_t his_iface = olsr_get_interface(neighbors[iface]->dest_iface);
         interface_t shift = shifts[his_iface][iface];
         *north = (his_north + shift) % 4;
-        DEBUG_APPLI2("FOUND shift:%d north:%s", shift, olsr_iface_str(*north));
+        DEBUG_APPLI("FOUND shift:%d north:%s", shift, olsr_iface_str(*north));
         DEBUG_DEC;
         return TRUE;
       }
@@ -398,6 +398,9 @@ static void
 olsr_application_task(void* pvParameters)
 {
   portTickType xLastWakeTime = xTaskGetTickCount();
+#ifdef WARNINGS
+  portTickType xLastLastWakeTime = xTaskGetTickCount();
+#endif
 
   for (;;)
   {
@@ -405,7 +408,20 @@ olsr_application_task(void* pvParameters)
     olsr_compute_graph();
     olsr_application_job();
     olsr_global_mutex_give();
-    vTaskDelayUntil(&xLastWakeTime, 100 / portTICK_RATE_MS);
+
+#ifdef WARNINGS
+    xLastLastWakeTime = xLastWakeTime;
+#endif
+    vTaskDelayUntil(&xLastWakeTime, APP_INTERVAL_MS / portTICK_RATE_MS);
+#ifdef WARNINGS
+    if ((xLastWakeTime - xLastLastWakeTime) * portTICK_RATE_MS
+        > APP_INTERVAL_MS)
+    {
+      WARNING("helloTask delay exceeded: %dms instead of %dms",
+              (xLastWakeTime - xLastLastWakeTime) * portTICK_RATE_MS,
+              APP_INTERVAL_MS);
+    }
+#endif
   }
 }
 
@@ -417,6 +433,6 @@ olsr_application_job()
   int i, j, w, h;
   olsr_mesh_coords(north, &w, &h, &j, &i);
 
-  DEBUG_PRINT("leader:%d north:%s i:%d j:%d w:%d h:%d", WHITE,
-              leader, olsr_iface_str(north), i, j, w, h);
+  printf("leader:%d north:%s i:%d j:%d w:%d h:%d\n",
+         leader, olsr_iface_str(north), i, j, w, h);
 }

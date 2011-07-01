@@ -142,48 +142,48 @@ olsr_routing_table_compute()
 void
 olsr_routing_table_print()
 {
-  DEBUG_TOPOLOGY("--- ROUTING TABLE ---");
-  DEBUG_TOPOLOGY("");
+  DEBUG_ROUTING_TABLE("--- ROUTING TABLE ---");
+  DEBUG_ROUTING_TABLE("");
 
   DEBUG_INC;
 
-  DEBUG_TOPOLOGY(".-%s-.-%s-.-%s-.-%s-.",
-                  DASHES(10),
-                  DASHES(10),
-                  DASHES(4),
-                  DASHES(10));
+  DEBUG_ROUTING_TABLE(".-%s-.-%s-.-%s-.-%s-.",
+                      DASHES(10),
+                      DASHES(10),
+                      DASHES(4),
+                      DASHES(10));
 
-  DEBUG_TOPOLOGY("| %10s | %10s | %4s | %10s |",
-                 "dest addr",
-                 "next addr",
-                 "dist",
-                 "iface addr");
+  DEBUG_ROUTING_TABLE("| %10s | %10s | %4s | %10s |",
+                      "dest addr",
+                      "next addr",
+                      "dist",
+                      "iface addr");
 
-  DEBUG_TOPOLOGY("+-%s-+-%s-+-%s-+-%s-+",
-                 DASHES(10),
-                 DASHES(10),
-                 DASHES(4),
-                 DASHES(10));
+  DEBUG_ROUTING_TABLE("+-%s-+-%s-+-%s-+-%s-+",
+                      DASHES(10),
+                      DASHES(10),
+                      DASHES(4),
+                      DASHES(10));
 
   FOREACH_ROUTE(
     r,
-    DEBUG_TOPOLOGY("| %10d | %10d | %4d | %10d |",
-                   r->R_dest_addr,
-                   r->R_next_addr,
-                   r->R_dist,
-                   r->R_iface_addr);
+    DEBUG_ROUTING_TABLE("| %10d | %10d | %4d | %10d |",
+                        r->R_dest_addr,
+                        r->R_next_addr,
+                        r->R_dist,
+                        r->R_iface_addr);
     );
 
-  DEBUG_TOPOLOGY("'-%s-'-%s-'-%s-'-%s-'",
-                 DASHES(10),
-                 DASHES(10),
-                 DASHES(4),
-                 DASHES(10));
+  DEBUG_ROUTING_TABLE("'-%s-'-%s-'-%s-'-%s-'",
+                      DASHES(10),
+                      DASHES(10),
+                      DASHES(4),
+                      DASHES(10));
 
   DEBUG_DEC;
 
-  DEBUG_TOPOLOGY("");
+  DEBUG_ROUTING_TABLE("");
 
-  DEBUG_TOPOLOGY("--- END ROUTING TABLE ---");
+  DEBUG_ROUTING_TABLE("--- END ROUTING TABLE ---");
 }
 #endif

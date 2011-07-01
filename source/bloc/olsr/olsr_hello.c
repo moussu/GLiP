@@ -488,9 +488,14 @@ olsr_hello_force_send()
   */
 }
 
+#define HELLO_EFFECTIVE (HELLO_INTERVAL_S * 1000 - MAXJITTER_MS)
+
 static void
 olsr_hello_task(void* pvParameters)
 {
+#ifdef WARNINGS
+  portTickType xLastLastWakeTime = xTaskGetTickCount();
+#endif
   portTickType xLastWakeTime = xTaskGetTickCount();
 
   for (;;)
@@ -501,7 +506,21 @@ olsr_hello_task(void* pvParameters)
 
     xSemaphoreGive(force_send_mutex);
 
+#ifdef WARNINGS
+    xLastLastWakeTime = xLastWakeTime;
+#endif
     vTaskDelayUntil(&xLastWakeTime,
-                    HELLO_INTERVAL_S * 1000 - MAXJITTER_MS);
+                    HELLO_EFFECTIVE / portTICK_RATE_MS);
+#ifdef WARNINGS
+    if ((xLastWakeTime - xLastLastWakeTime) * portTICK_RATE_MS
+        > HELLO_EFFECTIVE)
+    {
+      WARNING("helloTask delay exceeded: %dms instead of %dms",
+              (xLastWakeTime - xLastLastWakeTime) * portTICK_RATE_MS,
+              HELLO_EFFECTIVE);
+    }
+#endif
   }
 }
+
+#undef HELLO_EFFECTIVE

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "debug.h"
 
-int debug = 0;
-int indent = 0;
+int __debug_id__ = 0;
+int __debug_indent__ = 0;
 
 void
 textcolor(color_t color)

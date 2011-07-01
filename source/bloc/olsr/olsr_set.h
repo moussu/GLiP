@@ -146,7 +146,7 @@
     const int old = Name##_set.first_empty;                             \
     if (Name##_set.full)                                                \
     {                                                                   \
-      DEBUG_SET(#Name " set full! [max_size:%d]", Name##_set.max_size); \
+      ERROR(#Name " set full! [max_size:%d]", Name##_set.max_size);     \
       SET_ABORT;                                                        \
       return NULL;                                                      \
     }                                                                   \
@@ -296,7 +296,8 @@
     portTickType xLastWakeTime;                                         \
     for (;;)                                                            \
     {                                                                   \
-      vTaskDelayUntil(&xLastWakeTime, SET_REFRESH_TIME_MS);             \
+      vTaskDelayUntil(&xLastWakeTime, SET_REFRESH_TIME_MS               \
+                      / portTICK_RATE_MS);                              \
                                                                         \
       if (Name##_set.n_tuples == 0)                                     \
         continue;                                                       \
