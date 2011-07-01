@@ -33,6 +33,8 @@
 
 # define C_S                (1.0f/16.0f)
 
+// Not in the RFC, self defined:
+# define RECV_INTERVAL_MS   (10)
 # define APP_INTERVAL_MS   (100)
 
 // 18.2.  Emission Intervals:
