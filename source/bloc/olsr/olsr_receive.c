@@ -133,10 +133,10 @@ olsr_receive_task(void* pvParameters)
       if(!xQueueReceive(receive_queues[iface], &packet, 10 / portTICK_RATE_MS))
         continue;
 
-      DEBUG_RECEIVE("received packet[size:%d, sn:%d] <- iface %c",
+      DEBUG_RECEIVE("received packet[size:%d, sn:%d] <- iface %s",
                     packet.header.length,
                     packet.header.sn,
-                    olsr_iface_print(iface));
+                    olsr_iface_str(iface));
       DEBUG_INC;
 
       olsr_process_packet(&packet, iface);

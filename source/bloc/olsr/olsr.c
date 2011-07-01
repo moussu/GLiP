@@ -95,8 +95,8 @@ olsr_init(address_t uid)
   {
     state.iface_addresses[iface] =
       olsr_get_interface_address(uid, iface);
-    DEBUG_SERVER("iface %c address is 0x%x",
-                 olsr_iface_print(iface),
+    DEBUG_SERVER("iface %s address is 0x%x",
+                 olsr_iface_str(iface),
                  state.iface_addresses[iface]);
   }
 
@@ -275,7 +275,8 @@ bool
 olsr_mesh_offset(address_t addr1, address_t addr2, interface_t north, int* i, int* j)
 {
   olsr_graph_reset_marqued();
-  DEBUG_APPLI("COMPUTING OFFSET addr1:%d addr2:%d north:%c", addr1, addr2, olsr_iface_print(north));
+  DEBUG_APPLI("COMPUTING OFFSET addr1:%d addr2:%d north:%s",
+              addr1, addr2, olsr_iface_str(north));
   DEBUG_INC;
   bool ret = olsr_mesh_offset_(addr1, addr2, north, 0, 0, j, i);
   DEBUG_DEC;
@@ -320,7 +321,7 @@ olsr_mesh_north_of_(address_t addr1, address_t addr2,
         interface_t his_iface = olsr_get_interface(neighbors[iface]->dest_iface);
         interface_t shift = shifts[his_iface][iface];
         *north = (his_north + shift) % 4;
-        DEBUG_APPLI2("FOUND shift:%d north:%c", shift, olsr_iface_print(*north));
+        DEBUG_APPLI2("FOUND shift:%d north:%s", shift, olsr_iface_str(*north));
         DEBUG_DEC;
         return TRUE;
       }
@@ -416,6 +417,6 @@ olsr_application_job()
   int i, j, w, h;
   olsr_mesh_coords(north, &w, &h, &j, &i);
 
-  DEBUG_PRINT("leader:%d north:%c i:%d j:%d w:%d h:%d", WHITE,
-              leader, olsr_iface_print(north), i, j, w, h);
+  DEBUG_PRINT("leader:%d north:%s i:%d j:%d w:%d h:%d", WHITE,
+              leader, olsr_iface_str(north), i, j, w, h);
 }

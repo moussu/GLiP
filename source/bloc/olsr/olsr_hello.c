@@ -361,13 +361,13 @@ olsr_hello_send_ifaces()
 
   for (int iface = 0; iface < IFACES_COUNT; iface++)
   {
-    DEBUG_HELLO("generate hello message for iface %c",
-                olsr_iface_print(iface));
+    DEBUG_HELLO("generate hello message for iface %s",
+                olsr_iface_str(iface));
     DEBUG_INC;
     olsr_generate_hello(&hello_message, iface);
     DEBUG_DEC;
 
-    DEBUG_HELLO("send it to iface %c", olsr_iface_print(iface));
+    DEBUG_HELLO("send it to iface %s", olsr_iface_str(iface));
     olsr_send_message(&hello_message, iface);
   }
 

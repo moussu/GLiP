@@ -2,12 +2,6 @@
 
 static const char ifaces[4] = {'N', 'W', 'S', 'E'};
 
-char
-olsr_iface_print(interface_t iface)
-{
-  return ifaces[iface];
-}
-
 int
 olsr_iface_parse(char c, interface_t* iface)
 {

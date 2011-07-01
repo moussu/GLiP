@@ -147,8 +147,8 @@ olsr_send_task(void* pvParameters)
 #ifdef DEBUG
         if (i == 0)
         {
-          DEBUG_SEND("sending packets -> iface %c",
-                     olsr_iface_print(iface));
+          DEBUG_SEND("sending packets -> iface %s",
+                     olsr_iface_str(iface));
 
           DEBUG_INC;
 
@@ -193,9 +193,9 @@ olsr_send_task(void* pvParameters)
 #ifdef DEBUG
         DEBUG_DEC;
 
-        DEBUG_SEND("send packet[mess:%d, size:%d] -> iface %c",
+        DEBUG_SEND("send packet[mess:%d, size:%d] -> iface %s",
                     message_count, (int)packet.header.length,
-                    olsr_iface_print(iface));
+                    olsr_iface_str(iface));
 
         DEBUG_DEC;
 #endif

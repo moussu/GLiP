@@ -93,10 +93,12 @@ typedef enum
 
 # ifdef DEBUG
 # include <stm32f10x.h>
+# include "olsr_ifaces.h"
 const char* olsr_neighbor_type_str(neighbor_type_t t);
 const char* olsr_willingness_str(willingness_t w);
 const char* olsr_link_type_str(link_type_t t);
 const char* olsr_link_status_str(link_status_t s);
+const char* olsr_iface_str(interface_t iface);
 inline const char*
 olsr_bool_str(bool b)
 {
