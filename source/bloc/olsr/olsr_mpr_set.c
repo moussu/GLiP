@@ -290,7 +290,7 @@ olsr_mpr_set_recompute()
   DEBUG_INC;
   for (int iface = 0; iface < IFACES_COUNT; iface++)
   {
-    DEBUG_MPR("iface %c:", olsr_iface_print(iface));
+    DEBUG_MPR("iface %s:", olsr_iface_str(iface));
     DEBUG_INC;
     olsr_mpr_set_compute_iface(iface);
     DEBUG_DEC;

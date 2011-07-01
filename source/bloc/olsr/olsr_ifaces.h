@@ -12,9 +12,6 @@ typedef enum
   EAST_IFACE  = 3,
 } interface_t;
 
-char olsr_iface_print(interface_t iface);
-int olsr_iface_parse(char c, interface_t* iface);
-
 inline interface_t
 olsr_get_interface(address_t iface_address)
 {
@@ -33,5 +30,7 @@ olsr_iface_to_main_address(address_t iface_address)
 {
   return (iface_address & (~0x3)) & 0xffff;
 }
+
+int olsr_iface_parse(char c, interface_t* iface);
 
 #endif
