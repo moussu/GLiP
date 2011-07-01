@@ -39,32 +39,32 @@ olsr_ms_set_delete(int i)
 #ifdef DEBUG
 void olsr_ms_set_print()
 {
-  DEBUG_MS("--- MS SET ---");
-  DEBUG_MS("");
+  DEBUG_MS_SET("--- MS SET ---");
+  DEBUG_MS_SET("");
 
   DEBUG_INC;
 
-  DEBUG_MS("current time is %d", (int)olsr_get_current_time());
-  DEBUG_MS("");
+  DEBUG_MS_SET("current time is %d", (int)olsr_get_current_time());
+  DEBUG_MS_SET("");
 
-  DEBUG_MS(".-%s-.-%s-.", DASHES(9), DASHES(10));
+  DEBUG_MS_SET(".-%s-.-%s-.", DASHES(9), DASHES(10));
 
 
-  DEBUG_MS("| %9s | %10s |", "main addr", "time");
+  DEBUG_MS_SET("| %9s | %10s |", "main addr", "time");
 
-  DEBUG_MS("+-%s-+-%s-+", DASHES(9), DASHES(10));
+  DEBUG_MS_SET("+-%s-+-%s-+", DASHES(9), DASHES(10));
 
   FOREACH_MS_CREW(
     m,
-    DEBUG_MS("| %9d | %10d |", m->MS_main_addr, m->MS_time);
+    DEBUG_MS_SET("| %9d | %10d |", m->MS_main_addr, m->MS_time);
     );
 
-  DEBUG_MS("'-%s-'-%s-'", DASHES(9), DASHES(10));
+  DEBUG_MS_SET("'-%s-'-%s-'", DASHES(9), DASHES(10));
 
   DEBUG_DEC;
 
-  DEBUG_MS("");
+  DEBUG_MS_SET("");
 
-  DEBUG_MS("--- END MS SET ---");
+  DEBUG_MS_SET("--- END MS SET ---");
 }
 #endif

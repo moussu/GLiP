@@ -246,6 +246,8 @@ olsr_tc_force_send()
   xSemaphoreGive(force_send_mutex);*/
 }
 
+#define TC_EFFECTIVE (TC_INTERVAL_S * 1000 - MAXJITTER_MS)
+
 static void
 olsr_tc_task(void* pvParameters)
 {
@@ -259,6 +261,9 @@ olsr_tc_task(void* pvParameters)
    */
 
   olsr_message_t tc_message;
+#ifdef WARNINGS
+  portTickType xLastLastWakeTime = xTaskGetTickCount();
+#endif
   portTickType xLastWakeTime = xTaskGetTickCount();
   portTickType first_empty_time = xTaskGetTickCount();
   bool sending_empty = FALSE;
@@ -296,69 +301,86 @@ olsr_tc_task(void* pvParameters)
 
     xSemaphoreGive(force_send_mutex);
 
+#ifdef WARNINGS
+    xLastLastWakeTime = xLastWakeTime;
+#endif
+
     vTaskDelayUntil(&xLastWakeTime,
-                    TC_INTERVAL_S * 1000 - MAXJITTER_MS);
+                    TC_EFFECTIVE / portTICK_RATE_MS);
+
+#ifdef WARNINGS
+    if ((xLastWakeTime - xLastLastWakeTime) * portTICK_RATE_MS
+        > TC_EFFECTIVE)
+    {
+      WARNING("tcTask delay exceeded: %dms instead of %dms",
+              (xLastWakeTime - xLastLastWakeTime) * portTICK_RATE_MS,
+              TC_EFFECTIVE);
+    }
+#endif
+
   }
 }
+
+#undef TC_EFFECTIVE
 
 #ifdef DEBUG
 void olsr_topology_set_print()
 {
-  DEBUG_TOPOLOGY("--- TOPOLOGY SET ---");
-  DEBUG_TOPOLOGY("");
+  DEBUG_TOPOLOGY_SET("--- TOPOLOGY SET ---");
+  DEBUG_TOPOLOGY_SET("");
 
   DEBUG_INC;
 
-  DEBUG_TOPOLOGY("current time is %d", (int)olsr_get_current_time());
-  DEBUG_TOPOLOGY("");
+  DEBUG_TOPOLOGY_SET("current time is %d", (int)olsr_get_current_time());
+  DEBUG_TOPOLOGY_SET("");
 
-  DEBUG_TOPOLOGY(".-%s-.-%s-.-%s-.-%s-.-%s-.-%s-.",
-                  DASHES(10),
-                  DASHES(10),
-                  DASHES(10),
-                  DASHES(10),
-                  DASHES(10),
-                  DASHES(10));
+  DEBUG_TOPOLOGY_SET(".-%s-.-%s-.-%s-.-%s-.-%s-.-%s-.",
+                     DASHES(10),
+                     DASHES(10),
+                     DASHES(10),
+                     DASHES(10),
+                     DASHES(10),
+                     DASHES(10));
 
-  DEBUG_TOPOLOGY("| %10s | %10s | %10s | %10s | %10s | %10s |",
-                 "dest addr",
-                 "dest iface",
-                 "last addr",
-                 "last iface",
-                 "sn",
-                 "time");
+  DEBUG_TOPOLOGY_SET("| %10s | %10s | %10s | %10s | %10s | %10s |",
+                     "dest addr",
+                     "dest iface",
+                     "last addr",
+                     "last iface",
+                     "sn",
+                     "time");
 
-  DEBUG_TOPOLOGY("+-%s-+-%s-+-%s-+-%s-+-%s-+-%s-+",
-                 DASHES(10),
-                 DASHES(10),
-                 DASHES(10),
-                 DASHES(10),
-                 DASHES(10),
-                 DASHES(10));
+  DEBUG_TOPOLOGY_SET("+-%s-+-%s-+-%s-+-%s-+-%s-+-%s-+",
+                     DASHES(10),
+                     DASHES(10),
+                     DASHES(10),
+                     DASHES(10),
+                     DASHES(10),
+                     DASHES(10));
 
   FOREACH_TOPOLOGY_CREW(
     t,
-    DEBUG_TOPOLOGY("| %10d | %10d | %10d | %10d | %10d | %10d |",
-                   t->T_dest_addr,
-                   t->T_dest_iface,
-                   t->T_last_addr,
-                   t->T_last_iface,
-                   t->T_seq,
-                   t->T_time);
+    DEBUG_TOPOLOGY_SET("| %10d | %10d | %10d | %10d | %10d | %10d |",
+                       t->T_dest_addr,
+                       t->T_dest_iface,
+                       t->T_last_addr,
+                       t->T_last_iface,
+                       t->T_seq,
+                       t->T_time);
     );
 
-  DEBUG_TOPOLOGY("'-%s-'-%s-'-%s-'-%s-'-%s-'-%s-'",
-                 DASHES(10),
-                 DASHES(10),
-                 DASHES(10),
-                 DASHES(10),
-                 DASHES(10),
-                 DASHES(10));
+  DEBUG_TOPOLOGY_SET("'-%s-'-%s-'-%s-'-%s-'-%s-'-%s-'",
+                     DASHES(10),
+                     DASHES(10),
+                     DASHES(10),
+                     DASHES(10),
+                     DASHES(10),
+                     DASHES(10));
 
   DEBUG_DEC;
 
-  DEBUG_TOPOLOGY("");
+  DEBUG_TOPOLOGY_SET("");
 
-  DEBUG_TOPOLOGY("--- END TOPOLOGY SET ---");
+  DEBUG_TOPOLOGY_SET("--- END TOPOLOGY SET ---");
 }
 #endif

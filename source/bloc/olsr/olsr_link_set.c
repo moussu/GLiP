@@ -280,51 +280,51 @@ olsr_is_iface_neighbor(address_t iface_address,
 #ifdef DEBUG
 void olsr_link_set_print()
 {
-  DEBUG_LINK("--- LINK SET ---");
-  DEBUG_LINK("");
+  DEBUG_LINK_SET("--- LINK SET ---");
+  DEBUG_LINK_SET("");
 
   DEBUG_INC;
 
-  DEBUG_LINK("current time is %d", (int)olsr_get_current_time());
-  DEBUG_LINK("");
+  DEBUG_LINK_SET("current time is %d", (int)olsr_get_current_time());
+  DEBUG_LINK_SET("");
 
-  DEBUG_LINK(".-%s-.-%s-.-%s-.-%s-.-%s-.",
-             DASHES(11),
-             DASHES(11),
-             DASHES(10),
-             DASHES(10),
-             DASHES(10));
+  DEBUG_LINK_SET(".-%s-.-%s-.-%s-.-%s-.-%s-.",
+                 DASHES(11),
+                 DASHES(11),
+                 DASHES(10),
+                 DASHES(10),
+                 DASHES(10));
 
 
-  DEBUG_LINK("| %11s | %11s | %10s | %10s | %10s |",
-             "local iface", "neigh iface",
-             "SYM time", "ASYM time", "time");
+  DEBUG_LINK_SET("| %11s | %11s | %10s | %10s | %10s |",
+                 "local iface", "neigh iface",
+                 "SYM time", "ASYM time", "time");
 
-  DEBUG_LINK("+-%s-+-%s-+-%s-+-%s-+-%s-+",
-             DASHES(11),
-             DASHES(11),
-             DASHES(10),
-             DASHES(10),
-             DASHES(10));
+  DEBUG_LINK_SET("+-%s-+-%s-+-%s-+-%s-+-%s-+",
+                 DASHES(11),
+                 DASHES(11),
+                 DASHES(10),
+                 DASHES(10),
+                 DASHES(10));
 
   FOREACH_LINK_CREW(
     l,
-    DEBUG_LINK("| %11d | %11d | %10d | %10d | %10d |",
-               l->L_local_iface_addr, l->L_neighbor_iface_addr,
-               l->L_SYM_time, l->L_ASYM_time, l->L_time);
+    DEBUG_LINK_SET("| %11d | %11d | %10d | %10d | %10d |",
+                   l->L_local_iface_addr, l->L_neighbor_iface_addr,
+                   l->L_SYM_time, l->L_ASYM_time, l->L_time);
     );
 
-  DEBUG_LINK("'-%s-'-%s-'-%s-'-%s-'-%s-'",
-             DASHES(11),
-             DASHES(11),
-             DASHES(10),
-             DASHES(10),
-             DASHES(10));
+  DEBUG_LINK_SET("'-%s-'-%s-'-%s-'-%s-'-%s-'",
+                 DASHES(11),
+                 DASHES(11),
+                 DASHES(10),
+                 DASHES(10),
+                 DASHES(10));
 
   DEBUG_DEC;
 
-  DEBUG_LINK("");
+  DEBUG_LINK_SET("");
 
-  DEBUG_LINK("--- END LINK SET ---");
+  DEBUG_LINK_SET("--- END LINK SET ---");
 }
 #endif

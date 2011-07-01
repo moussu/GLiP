@@ -88,36 +88,36 @@ olsr_has_to_be_forwarded(address_t addr, seq_num_t sn, interface_t iface)
 #ifdef DEBUG
 void olsr_duplicate_set_print()
 {
-  DEBUG_DUPLICATE("--- DUPLICATE SET ---");
-  DEBUG_DUPLICATE("");
+  DEBUG_DUPLICATE_SET("--- DUPLICATE SET ---");
+  DEBUG_DUPLICATE_SET("");
 
   DEBUG_INC;
 
-  DEBUG_DUPLICATE("current time is %d", (int)olsr_get_current_time());
-  DEBUG_DUPLICATE("");
+  DEBUG_DUPLICATE_SET("current time is %d", (int)olsr_get_current_time());
+  DEBUG_DUPLICATE_SET("");
 
-  DEBUG_DUPLICATE(".-%s-.-%s-.-%s-.-%s-.-%s-.-%s-.-%s-.-%s-.",
-             DASHES(4),
-             DASHES(5),
-             DASHES(10),
-             DASHES(1),
-             DASHES(1),
-             DASHES(1),
-             DASHES(1),
-             DASHES(7));
+  DEBUG_DUPLICATE_SET(".-%s-.-%s-.-%s-.-%s-.-%s-.-%s-.-%s-.-%s-.",
+                      DASHES(4),
+                      DASHES(5),
+                      DASHES(10),
+                      DASHES(1),
+                      DASHES(1),
+                      DASHES(1),
+                      DASHES(1),
+                      DASHES(7));
 
-  DEBUG_DUPLICATE("| %4s | %5s | %10s | %1s | %1s | %1s | %1s | %7s |",
-                  "addr", "sn", "time", "N", "S", "W", "E", "retrans");
+  DEBUG_DUPLICATE_SET("| %4s | %5s | %10s | %1s | %1s | %1s | %1s | %7s |",
+                      "addr", "sn", "time", "N", "S", "W", "E", "retrans");
 
-  DEBUG_DUPLICATE("+-%s-+-%s-+-%s-+-%s-+-%s-+-%s-+-%s-+-%s-+",
-             DASHES(4),
-             DASHES(5),
-             DASHES(10),
-             DASHES(1),
-             DASHES(1),
-             DASHES(1),
-             DASHES(1),
-             DASHES(7));
+  DEBUG_DUPLICATE_SET("+-%s-+-%s-+-%s-+-%s-+-%s-+-%s-+-%s-+-%s-+",
+                      DASHES(4),
+                      DASHES(5),
+                      DASHES(10),
+                      DASHES(1),
+                      DASHES(1),
+                      DASHES(1),
+                      DASHES(1),
+                      DASHES(7));
 
   FOREACH_DUPLICATE_CREW(
     d,
@@ -129,26 +129,26 @@ void olsr_duplicate_set_print()
     for (int i = 0; i < d->n_ifaces; i++)
       ifaces[d->ifaces[i]] = used_slot;
 
-    DEBUG_DUPLICATE("| %4d | %5d | %10d | %1s | %1s | %1s | %1s | %7s |",
-                    d->addr, d->sn, d->time,
-                    ifaces[NORTH_IFACE], ifaces[SOUTH_IFACE],
-                    ifaces[WEST_IFACE], ifaces[EAST_IFACE],
-                    olsr_bool_str(d->retrans)));
+    DEBUG_DUPLICATE_SET("| %4d | %5d | %10d | %1s | %1s | %1s | %1s | %7s |",
+                        d->addr, d->sn, d->time,
+                        ifaces[NORTH_IFACE], ifaces[SOUTH_IFACE],
+                        ifaces[WEST_IFACE], ifaces[EAST_IFACE],
+                        olsr_bool_str(d->retrans)));
 
-  DEBUG_DUPLICATE("'-%s-'-%s-'-%s-'-%s-'-%s-'-%s-'-%s-'-%s-'",
-             DASHES(4),
-             DASHES(5),
-             DASHES(10),
-             DASHES(1),
-             DASHES(1),
-             DASHES(1),
-             DASHES(1),
-             DASHES(7));
+  DEBUG_DUPLICATE_SET("'-%s-'-%s-'-%s-'-%s-'-%s-'-%s-'-%s-'-%s-'",
+                      DASHES(4),
+                      DASHES(5),
+                      DASHES(10),
+                      DASHES(1),
+                      DASHES(1),
+                      DASHES(1),
+                      DASHES(1),
+                      DASHES(7));
 
   DEBUG_DEC;
 
-  DEBUG_DUPLICATE("");
+  DEBUG_DUPLICATE_SET("");
 
-  DEBUG_DUPLICATE("--- END LINK SET ---");
+  DEBUG_DUPLICATE_SET("--- END LINK SET ---");
 }
 #endif

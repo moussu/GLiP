@@ -33,6 +33,8 @@
 
 # define C_S                (1.0f/16.0f)
 
+# define APP_INTERVAL_MS   (100)
+
 // 18.2.  Emission Intervals:
 # define HELLO_INTERVAL_S   (2)
 # define REFRESH_INTERVAL_S (2)

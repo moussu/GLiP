@@ -316,100 +316,100 @@ olsr_mpr_set_recompute()
 #ifdef DEBUG
 void olsr_N_set_print()
 {
-  DEBUG_MPR("--- N SET ---");
-  DEBUG_MPR("");
+  DEBUG_MPR_SET("--- N SET ---");
+  DEBUG_MPR_SET("");
 
   DEBUG_INC;
 
-  DEBUG_MPR(".-%s-.-%s-.-%s-.-%s-.-%s-.",
-            DASHES(10), DASHES(10), DASHES(12),
-            DASHES(4), DASHES(4));
+  DEBUG_MPR_SET(".-%s-.-%s-.-%s-.-%s-.-%s-.",
+                DASHES(10), DASHES(10), DASHES(12),
+                DASHES(4), DASHES(4));
 
-  DEBUG_MPR("| %10s | %10s | %12s | %4s | %4s |",
-            "main addr", "status", "will", "D", "r");
+  DEBUG_MPR_SET("| %10s | %10s | %12s | %4s | %4s |",
+                "main addr", "status", "will", "D", "r");
 
-  DEBUG_MPR("+-%s-+-%s-+-%s-+-%s-+-%s-+",
-            DASHES(10), DASHES(10), DASHES(12),
-            DASHES(4), DASHES(4));
+  DEBUG_MPR_SET("+-%s-+-%s-+-%s-+-%s-+-%s-+",
+                DASHES(10), DASHES(10), DASHES(12),
+                DASHES(4), DASHES(4));
 
   FOREACH_N(
     n,
-    DEBUG_MPR("| %10d | %10s | %12s | %4d | %4d |",
-              n->N_neighbor_main_addr,
-              olsr_link_status_str(n->N_status),
-              olsr_willingness_str(n->N_willingness),
-              n->D,
-              n->reachability
+    DEBUG_MPR_SET("| %10d | %10s | %12s | %4d | %4d |",
+                  n->N_neighbor_main_addr,
+                  olsr_link_status_str(n->N_status),
+                  olsr_willingness_str(n->N_willingness),
+                  n->D,
+                  n->reachability
       );
     );
 
-  DEBUG_MPR("'-%s-'-%s-'-%s-'-%s-'-%s-'",
-            DASHES(10), DASHES(10), DASHES(12),
-            DASHES(4), DASHES(4));
+  DEBUG_MPR_SET("'-%s-'-%s-'-%s-'-%s-'-%s-'",
+                DASHES(10), DASHES(10), DASHES(12),
+                DASHES(4), DASHES(4));
 
   DEBUG_DEC;
 
-  DEBUG_MPR("");
+  DEBUG_MPR_SET("");
 
-  DEBUG_MPR("--- END N SET ---");
+  DEBUG_MPR_SET("--- END N SET ---");
 }
 
 void olsr_N2_set_print()
 {
-  DEBUG_MPR("--- N2 SET ---");
-  DEBUG_MPR("");
+  DEBUG_MPR_SET("--- N2 SET ---");
+  DEBUG_MPR_SET("");
 
   DEBUG_INC;
 
-  DEBUG_MPR("current time is %d", (int)olsr_get_current_time());
-  DEBUG_MPR("");
+  DEBUG_MPR_SET("current time is %d", (int)olsr_get_current_time());
+  DEBUG_MPR_SET("");
 
-  DEBUG_MPR(".-%s-.-%s-.-%s-.", DASHES(12), DASHES(12), DASHES(10));
+  DEBUG_MPR_SET(".-%s-.-%s-.-%s-.", DASHES(12), DASHES(12), DASHES(10));
 
-  DEBUG_MPR("| %12s | %12s | %10s |", "n main addr", "n2 main addr", "time");
+  DEBUG_MPR_SET("| %12s | %12s | %10s |", "n main addr", "n2 main addr", "time");
 
-  DEBUG_MPR("+-%s-+-%s-+-%s-+", DASHES(12), DASHES(12), DASHES(10));
+  DEBUG_MPR_SET("+-%s-+-%s-+-%s-+", DASHES(12), DASHES(12), DASHES(10));
 
   FOREACH_N2(
     n,
-    DEBUG_MPR("| %12d | %12d | %10d |",
-                   n->N_neighbor_main_addr,
-                   n->N_2hop_addr,
-                   n->N_time);
+    DEBUG_MPR_SET("| %12d | %12d | %10d |",
+                  n->N_neighbor_main_addr,
+                  n->N_2hop_addr,
+                  n->N_time);
     );
 
-  DEBUG_MPR("'-%s-'-%s-'-%s-'", DASHES(12), DASHES(12), DASHES(10));
+  DEBUG_MPR_SET("'-%s-'-%s-'-%s-'", DASHES(12), DASHES(12), DASHES(10));
 
   DEBUG_DEC;
 
-  DEBUG_MPR("");
+  DEBUG_MPR_SET("");
 
-  DEBUG_MPR("--- END N2 SET ---");
+  DEBUG_MPR_SET("--- END N2 SET ---");
 }
 
 void olsr_mpr_set_print()
 {
-  DEBUG_MPR("--- MPR SET ---");
-  DEBUG_MPR("");
+  DEBUG_MPR_SET("--- MPR SET ---");
+  DEBUG_MPR_SET("");
 
   DEBUG_INC;
 
-  DEBUG_MPR(".-%s-.", DASHES(4));
+  DEBUG_MPR_SET(".-%s-.", DASHES(4));
 
-  DEBUG_MPR("| %4s |", "addr");
+  DEBUG_MPR_SET("| %4s |", "addr");
 
-  DEBUG_MPR("+-%s-+", DASHES(4));
+  DEBUG_MPR_SET("+-%s-+", DASHES(4));
 
   FOREACH_MPR(
     m,
-    DEBUG_MPR("| %4d |", m->addr));
+    DEBUG_MPR_SET("| %4d |", m->addr));
 
-  DEBUG_MPR("'-%s-'", DASHES(4));
+  DEBUG_MPR_SET("'-%s-'", DASHES(4));
 
   DEBUG_DEC;
 
-  DEBUG_MPR("");
+  DEBUG_MPR_SET("");
 
-  DEBUG_MPR("--- END MPR SET ---");
+  DEBUG_MPR_SET("--- END MPR SET ---");
 }
 #endif

@@ -14,15 +14,12 @@ olsr_message_append(olsr_message_t* msg, void* data, int size_bytes)
 {
   if (MAX_MESSAGE_CONTENT_SIZE - msg->content_size < size_bytes)
   {
-    DEBUG_SEND("MAX_MESSAGE_CONTENT_SIZE overflow");
-#ifdef DEBUG
-    abort();
-#else
+    ERROR("MAX_MESSAGE_CONTENT_SIZE overflow");
+
     // FIXME: here we maybe need to put a special pattern
     // at the end of messages to avoid one to be processed
     // when not complete because of the overflow.
     return;
-#endif
   }
 
   memcpy(msg->content + msg->content_size, data, size_bytes);
@@ -46,12 +43,8 @@ olsr_forward_message(packet_byte_t* message, int size, interface_t iface)
     case MID_MESSAGE:
     case HNA_MESSAGE:
     default:
-      DEBUG_RECEIVE("unexpected message forwarding");
-#ifdef DEBUG
-    abort();
-#else
-    return;
-#endif
+      ERROR("unexpected message forwarding");
+      return;
   }
 }
 
@@ -71,12 +64,8 @@ olsr_process_message(packet_byte_t* message, int size, interface_t iface)
     case MID_MESSAGE:
     case HNA_MESSAGE:
     default:
-      DEBUG_RECEIVE("unexpected message processing");
-#ifdef DEBUG
-    abort();
-#else
-    return;
-#endif
+      ERROR("unexpected message processing");
+      return;
   }
 }
 

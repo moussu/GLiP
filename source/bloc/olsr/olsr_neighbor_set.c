@@ -139,39 +139,38 @@ olsr_advertise_neighbors(olsr_message_t* hello_message)
     olsr_message_append(hello_message, &link_header,
                         sizeof(olsr_link_message_hdr_t));
     olsr_message_append(hello_message, &tuple->N_neighbor_main_addr,
-                        sizeof(address_t));
-    )
+                        sizeof(address_t)));
 }
 
 #ifdef DEBUG
 void olsr_neighbor_set_print()
 {
-  DEBUG_NEIGHBOR("--- NEIGHBOR SET ---");
-  DEBUG_NEIGHBOR("");
+  DEBUG_NEIGHBOR_SET("--- NEIGHBOR SET ---");
+  DEBUG_NEIGHBOR_SET("");
 
   DEBUG_INC;
 
-  DEBUG_NEIGHBOR(".-%s-.-%s-.-%s-.", DASHES(10), DASHES(10), DASHES(12));
+  DEBUG_NEIGHBOR_SET(".-%s-.-%s-.-%s-.", DASHES(10), DASHES(10), DASHES(12));
 
-  DEBUG_NEIGHBOR("| %10s | %10s | %12s |", "main addr", "status", "will");
+  DEBUG_NEIGHBOR_SET("| %10s | %10s | %12s |", "main addr", "status", "will");
 
-  DEBUG_NEIGHBOR("+-%s-+-%s-+-%s-+", DASHES(10), DASHES(10), DASHES(12));
+  DEBUG_NEIGHBOR_SET("+-%s-+-%s-+-%s-+", DASHES(10), DASHES(10), DASHES(12));
 
   FOREACH_NEIGHBOR(
     n,
-    DEBUG_NEIGHBOR("| %10d | %10s | %12s |",
-                   n->N_neighbor_main_addr,
-                   olsr_link_status_str(n->N_status),
-                   olsr_willingness_str(n->N_willingness)
-                   );
+    DEBUG_NEIGHBOR_SET("| %10d | %10s | %12s |",
+                       n->N_neighbor_main_addr,
+                       olsr_link_status_str(n->N_status),
+                       olsr_willingness_str(n->N_willingness)
+      );
     );
 
-  DEBUG_NEIGHBOR("'-%s-'-%s-'-%s-'", DASHES(10), DASHES(10), DASHES(12));
+  DEBUG_NEIGHBOR_SET("'-%s-'-%s-'-%s-'", DASHES(10), DASHES(10), DASHES(12));
 
   DEBUG_DEC;
 
-  DEBUG_NEIGHBOR("");
+  DEBUG_NEIGHBOR_SET("");
 
-  DEBUG_NEIGHBOR("--- END NEIGHBOR SET ---");
+  DEBUG_NEIGHBOR_SET("--- END NEIGHBOR SET ---");
 }
 #endif

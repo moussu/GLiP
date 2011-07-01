@@ -7,21 +7,16 @@
   case E:                                      \
   return #E
 
-static const char* message = "ERROR:%d";
-
-#ifdef DEBUG
-# define DEFAULT_(Var)                          \
-  printf(message, Var);                         \
-  abort()
-# else
-# define DEFAULT_(Var)                          \
+#define DEFAULT_(Var)                           \
   sprintf(buf, message, Var);                   \
+  ERROR("ERROR:%d", Var);                       \
   return buf
-# endif
 
 #define DEFAULT(Var)                            \
   default:                                      \
-  DEFAULT_(Var);
+  DEFAULT_(Var)
+
+static const char* message = "ERROR:%d";
 
 const char*
 olsr_neighbor_type_str(neighbor_type_t t)
@@ -94,6 +89,7 @@ olsr_message_type_str(message_type_t t)
 const char*
 olsr_iface_str(interface_t iface)
 {
+  static char buf[32] __attribute__((unused));
   switch (iface)
   {
     case NORTH_IFACE:

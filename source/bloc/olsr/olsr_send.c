@@ -27,7 +27,6 @@ olsr_send_init()
               tskIDLE_PRIORITY, NULL);
 }
 
-
 static void
 olsr_send_message_copy(olsr_message_t* message,
                        olsr_message_hdr_t* header,
@@ -36,24 +35,16 @@ olsr_send_message_copy(olsr_message_t* message,
 {
   if (content_size > MAX_MESSAGE_CONTENT_SIZE)
   {
-    DEBUG_SEND("MAX_MESSAGE_CONTENT_SIZE overflow");
-#ifdef DEBUG
-    abort();
-#else
+    ERROR("MAX_MESSAGE_CONTENT_SIZE overflow");
     // FIXME: here we maybe need to put a special pattern
     // at the end of packets to avoid one to be processed
     // when not complete because of the overflow.
     return;
-#endif
   }
   if (header->ttl == 0)
   {
-    DEBUG_SEND("sending message with TTL = 0");
-#ifdef DEBUG
-    abort();
-#else
+    ERROR("sending message with TTL = 0");
     return;
-#endif
   }
   message->header = *header;
   message->header.size = content_size + sizeof(olsr_message_hdr_t);
@@ -114,6 +105,11 @@ olsr_send_task(void* pvParameters)
   packet_byte_t* write_position;
   packet_byte_t* end __attribute__((unused));
   olsr_message_t message;
+
+#ifdef WARNINGS
+  portTickType xLastLastWakeTime = xTaskGetTickCount();
+#endif
+
   portTickType xLastWakeTime = xTaskGetTickCount();
 
   packet.header.sn = 0;
@@ -123,7 +119,8 @@ olsr_send_task(void* pvParameters)
     const int wait_time = MAXJITTER_MS * (lfsr(32) / (~(uint32_t)0));
     for (int iface = 0; iface < IFACES_COUNT; iface++)
     {
-      vTaskDelayUntil(&xLastWakeTime, wait_time / IFACES_COUNT);
+      vTaskDelayUntil(&xLastWakeTime,
+                      (wait_time / IFACES_COUNT) / portTICK_RATE_MS);
 
       write_position = packet.content;
       end = write_position + MAX_PACKET_CONTENT_SIZE;
@@ -200,6 +197,17 @@ olsr_send_task(void* pvParameters)
         DEBUG_DEC;
 #endif
       }
+
+#ifdef WARNINGS
+      if ((xTaskGetTickCount() - xLastLastWakeTime) > MAXJITTER_MS)
+      {
+        WARNING("sendTask delay exceeded: %dms when max is %dms",
+                (xTaskGetTickCount() - xLastLastWakeTime) * portTICK_RATE_MS,
+                MAXJITTER_MS);
+      }
+
+      xLastLastWakeTime = xTaskGetTickCount();
+#endif
     }
   }
 }
