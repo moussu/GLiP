@@ -2,6 +2,9 @@
 #include <queue.h>
 #include <task.h>
 
+#include "charmap.h"
+#include "comm/simulator.h"
+
 #include "utils/lfsr.h"
 #include "olsr.h"
 #include "olsr_ifaces.h"
@@ -425,6 +428,8 @@ olsr_application_task(void* pvParameters)
   }
 }
 
+static pixel_t image[64] = {0};
+
 void
 olsr_application_job()
 {
@@ -435,4 +440,16 @@ olsr_application_job()
 
   printf("leader:%d north:%s i:%d j:%d w:%d h:%d\n",
          leader, olsr_iface_str(north), i, j, w, h);
+
+  for (int k = 0; k < 64; k++)
+    image[k] = 0;
+
+  uint8_t* c = charmap('a' + i * w + j);
+  for (int k = 0; k < 64; k++)
+    image[k] = c[k] ? 0xf00 : 0x000;
+
+  simulator_set_image_pointer(image);
+
+  //DEBUG_PRINT("leader:%d north:%c i:%d j:%d w:%d h:%d", WHITE,
+  //            leader, olsr_iface_print(north), i, j, w, h);
 }

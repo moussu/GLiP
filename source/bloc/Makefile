@@ -9,7 +9,7 @@ OBJS = $(notdir $(SRCS:.c=.o)) tasks.o queue.o 		\
 
 include ../Makefile.inc
 
-DIRS = olsr utils watchdog comm AsyncIO
+DIRS = olsr utils watchdog comm AsyncIO charmap
 CFLAGS += -D_GNU_SOURCE -DDEBUG -DWARNINGS -DERRORS -include debug.h
 CFLAGS += $(addprefix -I,$(DIRS))
 VPATH += $(DIRS)
@@ -19,3 +19,6 @@ LDFLAGS += -lpthread
 debug.h: dashes.h
 dashes.h: dashes.py
 	./$< 20 > $@
+
+charmap/charmap.c::
+	$(MAKE) -C charmap

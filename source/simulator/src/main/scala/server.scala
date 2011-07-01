@@ -71,12 +71,14 @@ package simulator.ether {
             lock.release
           }
           case 'l' => {
-            val i = packetDataInt(0)
-            val j = packetDataInt(1)
-            val r = packetDataInt(2)
-            val g = packetDataInt(3)
-            val b = packetDataInt(4)
-            portsToBlocks(packet.getPort()).leds(i)(j).setColor(r, g, b)
+            for (i <- 0 until 8) {
+              for (j <- 0 until 8) {
+                val r = packetDataInt(i * 8 * 3 + j * 3 + 0)
+                val g = packetDataInt(i * 8 * 3 + j * 3 + 1)
+                val b = packetDataInt(i * 8 * 3 + j * 3 + 2)
+                portsToBlocks(packet.getPort()).leds(i)(j).setColor(r, g, b)
+              }
+            }
             lock.release
           }
           case _ => lock.release

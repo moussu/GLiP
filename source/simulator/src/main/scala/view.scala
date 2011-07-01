@@ -10,7 +10,7 @@ package simulator.view {
     private val w = 800
     private val h = 600
 
-    private var pool: Pool = new Pool(model, w, h, true)
+    private var pool: Pool = new Pool(model, w, h, false)
     private var selected: Option[Block] = None
     private var detailed: Boolean = true
     private var offsetX:  Int = 0
