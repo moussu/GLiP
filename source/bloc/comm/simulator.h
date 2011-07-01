@@ -13,8 +13,13 @@ typedef struct
   struct udp_comm_t server;
 } simulator_t;
 
+typedef unsigned short pixel_t;
+typedef pixel_t* image_t;
+
+
 int simulator_init(int server_port, socket_callback_t socket);
 void simulator_send(const char* message, int size, interface_t iface);
 int simulator_receive(char* message, int max_size, interface_t* iface);
+void simulator_set_image_pointer(image_t image);
 
 #endif
