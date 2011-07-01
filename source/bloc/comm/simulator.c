@@ -37,6 +37,27 @@ simulator_init(int server_port, socket_callback_t callback)
 }
 
 void
+simulator_set_image_pointer(image_t image)
+{
+  static char buffer[SIMULATOR_BUFSIZE];
+  buffer[0] = 'l';
+
+  for (int i = 0; i < 8; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      buffer[i++] = i - 128;
+      buffer[i++] = j - 128;
+      buffer[i++] = (image[]) - 128;
+    }
+  }
+
+  memcpy(buffer + 2, message, size);
+
+  udp_client_send(&simulator.client, buffer, size);
+}
+
+void
 simulator_send(const char* message, int size, interface_t iface)
 {
   static char buffer[SIMULATOR_BUFSIZE];
