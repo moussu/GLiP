@@ -19,6 +19,14 @@ server=4444
 start=6543
 ports=$(seq $start $(($start + $n_blocs - 1)))
 
+sockets()
+{
+    # Close sockets:
+    for port in $ports $server; do
+        lsof -i udp:$port | tail -n1 | awk '{print $2}' | xargs kill -9 &> /dev/null
+    done
+}
+
 if [ -z "$term" ]; then
     term=xterm
 fi
@@ -33,7 +41,7 @@ fi
 
 cd $(dirname $0)
 
-make
+make || exit $?
 
 cd ../simulator
 sbt compile || exit 1
@@ -41,19 +49,21 @@ sbt run &
 sbt=$!
 cd -
 
+sockets
+
 bg=-rv
+wait="while ! lsof -i udp:$server > /dev/null; do sleep 0.1s; done;"
+xtermgdb="gdb -x .gdbinit -q -ex run --args main"
+emacsgdb="./gdb -x .gdbinit --annotate=3 -q --args main"
 for port in $ports; do
     case "$term" in
         xterm)
             #if [ "$bg" != "-rv" ]; then bg="-rv"; else bg=""; fi
-            wait="while ! lsof -i udp:$server > /dev/null; do sleep 0.1s; done;"
-            gdb="gdb -x .gdbinit -q -ex run --args main $port"
-            xterm $bg -e zsh -c "$wait $gdb" &
+            xterm $bg -e zsh -c "$wait $xtermgdb $port" &
             sleep 0.1s
             ;;
         xemacs)
-            gdb="./gdb -x .gdbinit --annotate=3 -q --args main $port"
-            emacs main.c --eval "(gdb \"$gdb\")" &
+            emacs main.c --eval "(gdb \"$emacsgdb $port\")" &
             ;;
     esac
 done
@@ -66,18 +76,19 @@ finish()
     case "$term" in
         xemacs)
             ps aux | grep "[e]macs" | grep "main\.c" | grep "\./gdb" | grep "main" \
-                | awk '{print $2}' | xargs kill
+                | awk '{print $2}' | xargs kill -9
+            ;;
+        xterm)
+            ps aux | grep "bloc/[m]ain" | awk '{print $2}' | xargs kill -9 &> /dev/null
+            ps aux | grep "$xtermgdb" | awk '{print $2}' | xargs kill -9 &> /dev/null
             ;;
     esac
 
-    # Close sockets:
-    for port in $ports $server; do
-        lsof -i udp:$port | tail -n1 | awk '{print $2}' | xargs kill &> /dev/null
-    done
+    sockets
 
     # Kill processes:
-    ps -f ax | awk '{printf("%d %d\n", $2, $3)}' | grep $sbt | awk '{print $1}' | xargs kill &> /dev/null
-    ps aux | grep "[s]imulator.Simulator" | awk '{print $2}' | xargs kill &> /dev/null
+    ps -f ax | awk '{printf("%d %d\n", $2, $3)}' | grep $sbt | awk '{print $1}' | xargs kill -9 &> /dev/null
+    ps aux | grep "[s]imulator.Simulator" | awk '{print $2}' | xargs kill -9 &> /dev/null
 
     # Exit gently:
     exit 0
