@@ -1,0 +1,77 @@
+___________________________________________________________
+       _  _  _      _               _      _  _  _  _
+    _ (_)(_)(_) _  (_)             (_)    (_)(_)(_)(_)_
+   (_)         (_) (_)           _  _     (_)        (_)
+   (_)    _  _  _  (_)          (_)(_)    (_) _  _  _(_)
+   (_)   (_)(_)(_) (_)             (_)    (_)(_)(_)(_)
+   (_)         (_) (_)             (_)    (_)
+   (_) _  _  _ (_) (_) _  _  _   _ (_) _  (_)
+      (_)(_)(_)(_) (_)(_)(_)(_) (_)(_)(_) (_) r o j e c t
+
+                             Great LED Interactive Puzzle
+___________________________________________________________
+
+This is a TODO list of most urgent features to implement.
+
+* packet size corruption problems:
+   find cause of following error messages:
+   "packet header length and packet content size are not consistent 52 != 114"
+   "corrupted packet received from iface W, length in header is 276 and content size is 272"
+   "corrupted packet received from iface N, length in header is 80 and content size is 48"
+   "packet header length and packet content size are not consistent 60 != 38"
+
+* use message append when more elegant, create packet append
+* improve olsr with nasty communication models
+* deal with time expirations when MAX_INT time reached, same for SN
+* deal with message size overflow, partial messages for TC messages:
+   such overflows do not happen yet as the packet size is HUGE
+
+* adjust sets size:
+   create MAX_GLIPS the max number of glips used simultaneously
+   define MAX_LINKS(N) = (2 * N), the max number of links for N glips
+   create a SF with value 4 (for instance)
+   link set size should be SF * 4
+   duplicate set size should be ???
+   neighbor set size should be SF * 4
+   neighbor2 set size should be SF * 8
+   mpr set size should be neighbor set size (* SF)
+   ms set size should be mpr set size
+   topology set SF * 2 * MAX_LINKS(MAX_GLIPS) (the 2 in case SYM links
+   	reported twice in topology set)
+   routing table size should be ???
+
+* isolate hello message processing subfunctions for populating sets
+* deal with willingness, adjust it if needed
+* implement broadcast
+* finish routing table implementation, implement send with ACK
+* leader election can be improved:
+   we can choose the bloc with the lowest UID in the blocs with the
+   higher number of links
+
+* implement global time computation, use hello messages:
+   receive message from X
+   if (this.time() - X.time() > THRESHOLD)
+   	X has rebooted, ignore
+   else if (X.time() - this.time() > THRESHOLD)
+   {
+   		I have rebooted
+   		this.time = X.time()
+   }
+   else
+   	this.time = alpha * this.time() + (1 - alpha) * X.time()
+
+* put 'if' inside functions:
+   recompute_mpr_set() should do "if (recomputing)"
+   currently the if is done each time recompute_mpr_set() is called
+   many other similar situations can be simplified that way
+
+* optimize mpr set computation:
+   we can use a dirty flag to recompute the mpr set once all received
+   messages have been processed. Currently it is recomputed each time
+   a change is detected in the proper sets (explained in the RFC),
+   that is maybe too much...
+   One has to check that it doesn't break anything though, it is just
+   an idea.
+   Other sets recomputations may have to be handled that way...
+
+Clément Moussu <clement.moussu@gmail.com>
