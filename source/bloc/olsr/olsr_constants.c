@@ -94,16 +94,12 @@ olsr_iface_str(interface_t iface)
   {
     case NORTH_IFACE:
       return "N";
-      break;
     case WEST_IFACE:
       return "W";
-      break;
     case SOUTH_IFACE:
       return "S";
-      break;
     case EAST_IFACE:
       return "E";
-      break;
     default:
       DEFAULT_(iface);
   }

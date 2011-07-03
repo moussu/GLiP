@@ -11,7 +11,7 @@
 #include <FreeRTOS.h>
 #include <netinet/in.h>
 
-#define UDP_PACKET_SIZE		( 1023UL )
+#define UDP_PACKET_SIZE		( 65535UL )
 
 typedef struct UDP_PACKET
 {
