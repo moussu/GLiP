@@ -216,13 +216,13 @@ olsr_mesh_offset_(address_t addr1, address_t addr2, interface_t north,
 
   if (addr1 == addr2)
   {
-    DEBUG_APPLI("found addr:%d i:%d j:%d", addr2, i, j);
+    DEBUG_APPLI_SET("found addr:%d i:%d j:%d", addr2, i, j);
     *x = j;
     *y = i;
     return TRUE;
   }
 
-  DEBUG_APPLI("addr1:%d addr2:%d i:%d j:%d", addr1, addr2, i, j);
+  DEBUG_APPLI_SET("addr1:%d addr2:%d i:%d j:%d", addr1, addr2, i, j);
 
   FOREACH(
     n,
@@ -245,21 +245,21 @@ olsr_mesh_offset_(address_t addr1, address_t addr2, interface_t north,
       switch (shifted_iface)
       {
         case NORTH_IFACE:
-          DEBUG_APPLI("found N neighbor addr:%d", neighbors[iface]->dest_addr);
+          DEBUG_APPLI_SET("found N neighbor addr:%d", neighbors[iface]->dest_addr);
           // Use image convention rather than mathematical:
           _i--;
           break;
         case WEST_IFACE:
-          DEBUG_APPLI("found W neighbor addr:%d", neighbors[iface]->dest_addr);
+          DEBUG_APPLI_SET("found W neighbor addr:%d", neighbors[iface]->dest_addr);
           _j--;
           break;
         case SOUTH_IFACE:
-          DEBUG_APPLI("found S neighbor addr:%d", neighbors[iface]->dest_addr);
+          DEBUG_APPLI_SET("found S neighbor addr:%d", neighbors[iface]->dest_addr);
           // Use image convention rather than mathematical:
           _i++;
           break;
         case EAST_IFACE:
-          DEBUG_APPLI("found E neighbor addr:%d", neighbors[iface]->dest_addr);
+          DEBUG_APPLI_SET("found E neighbor addr:%d", neighbors[iface]->dest_addr);
           _j++;
           break;
       }
@@ -284,7 +284,7 @@ bool
 olsr_mesh_offset(address_t addr1, address_t addr2, interface_t north, int* i, int* j)
 {
   olsr_graph_reset_marqued();
-  DEBUG_APPLI("COMPUTING OFFSET addr1:%d addr2:%d north:%s",
+  DEBUG_APPLI_SET("COMPUTING OFFSET addr1:%d addr2:%d north:%s",
               addr1, addr2, olsr_iface_str(north));
   DEBUG_INC;
   bool ret = olsr_mesh_offset_(addr1, addr2, north, 0, 0, j, i);
@@ -302,11 +302,11 @@ olsr_mesh_north_of_(address_t addr1, address_t addr2,
   if (addr1 == addr2)
   {
     *north = NORTH_IFACE;
-    DEBUG_APPLI("found addr:%d", addr2);
+    DEBUG_APPLI_SET("found addr:%d", addr2);
     return TRUE;
   }
 
-  DEBUG_APPLI("addr1:%d addr2:%d", addr1, addr2);
+  DEBUG_APPLI_SET("addr1:%d addr2:%d", addr1, addr2);
 
   FOREACH(
     n,
@@ -330,7 +330,7 @@ olsr_mesh_north_of_(address_t addr1, address_t addr2,
         interface_t his_iface = olsr_get_interface(neighbors[iface]->dest_iface);
         interface_t shift = shifts[his_iface][iface];
         *north = (his_north + shift) % 4;
-        DEBUG_APPLI("FOUND shift:%d north:%s", shift, olsr_iface_str(*north));
+        DEBUG_APPLI_SET("FOUND shift:%d north:%s", shift, olsr_iface_str(*north));
         DEBUG_DEC;
         return TRUE;
       }
