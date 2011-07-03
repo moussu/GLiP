@@ -7,6 +7,7 @@
 
 #include "utils/lfsr.h"
 #include "olsr.h"
+#include "olsr_constants.h"
 #include "olsr_ifaces.h"
 #include "olsr_state.h"
 #include "olsr_types.h"
@@ -22,6 +23,9 @@
 #include "olsr_routing_table.h"
 #include "olsr_send.h"
 #include "olsr_hello.h"
+
+#include "image/image.h"
+#include "image/lib_image.h"
 
 static xSemaphoreHandle olsr_global_mutex;
 
@@ -242,19 +246,21 @@ olsr_mesh_offset_(address_t addr1, address_t addr2, interface_t north,
       {
         case NORTH_IFACE:
           DEBUG_APPLI("found N neighbor addr:%d", neighbors[iface]->dest_addr);
-          _i = i + 1;
+          // Use image convention rather than mathematical:
+          _i--;
           break;
         case WEST_IFACE:
           DEBUG_APPLI("found W neighbor addr:%d", neighbors[iface]->dest_addr);
-          _j = j - 1;
+          _j--;
           break;
         case SOUTH_IFACE:
           DEBUG_APPLI("found S neighbor addr:%d", neighbors[iface]->dest_addr);
-          _i = i - 1;
+          // Use image convention rather than mathematical:
+          _i++;
           break;
         case EAST_IFACE:
           DEBUG_APPLI("found E neighbor addr:%d", neighbors[iface]->dest_addr);
-          _j = j + 1;
+          _j++;
           break;
       }
 
@@ -361,7 +367,7 @@ olsr_mesh_north(address_t leader)
 void
 olsr_mesh_coords(interface_t north, int* w, int* h, int* i, int* j)
 {
-  int min_i = 0xffff, min_j = 0xffff;
+  int min_i =  0xffff, min_j =  0xffff;
   int max_i = -0xffff, max_j = -0xffff;
   bool iterated = FALSE;
 
@@ -369,7 +375,7 @@ olsr_mesh_coords(interface_t north, int* w, int* h, int* i, int* j)
     n,
     int x;
     int y;
-    if (olsr_mesh_offset(state.address, n->last_addr, north, &x, &y))
+    if (olsr_mesh_offset(state.address, n->last_addr, north, &y, &x))
     {
       iterated = TRUE;
       if (x > max_j)
@@ -436,20 +442,18 @@ olsr_application_job()
   address_t leader = olsr_mesh_leader();
   interface_t north = olsr_mesh_north(leader);
   int i, j, w, h;
-  olsr_mesh_coords(north, &w, &h, &j, &i);
+  olsr_mesh_coords(north, &w, &h, &i, &j);
 
-  printf("leader:%d north:%s i:%d j:%d w:%d h:%d\n",
-         leader, olsr_iface_str(north), i, j, w, h);
-
-  for (int k = 0; k < 64; k++)
-    image[k] = 0;
+  image_reset(image);
 
   uint8_t* c = charmap('a' + i * w + j);
   for (int k = 0; k < 64; k++)
     image[k] = c[k] ? 0xf00 : 0x000;
 
+  image_direct(image, north);
+
   simulator_set_image_pointer(image);
 
-  //DEBUG_PRINT("leader:%d north:%c i:%d j:%d w:%d h:%d", WHITE,
-  //            leader, olsr_iface_print(north), i, j, w, h);
+  DEBUG_APPLI("leader:%d north:%s i:%d j:%d w:%d h:%d",
+              leader, olsr_iface_str(north), i, j, w, h);
 }
