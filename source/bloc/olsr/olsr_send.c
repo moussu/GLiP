@@ -157,6 +157,19 @@ olsr_send_task(void* pvParameters)
         i++;
 #endif
 
+#ifdef ERRORS
+        switch (message.header.type)
+        {
+          case HELLO_MESSAGE:
+          case TC_MESSAGE:
+          case MID_MESSAGE:
+          case HNA_MESSAGE:
+            break;
+          default:
+            ERROR("sending packet with wrong type %d", message.header.type);
+        }
+#endif
+
         //message.header.sn = current_message_sn++;
         memcpy(write_position, &message.header, sizeof(olsr_message_hdr_t));
         write_position += sizeof(olsr_message_hdr_t);
@@ -173,13 +186,14 @@ olsr_send_task(void* pvParameters)
 
         if (content_length > MAX_PACKET_CONTENT_SIZE - MAX_MESSAGE_SIZE)
         {
-          DEBUG_SEND("packet max size of %d almost reached, stopping",
-                     MAX_PACKET_CONTENT_SIZE);
+          WARNING("packet max size of %d almost reached, packet considered full",
+                  (int)MAX_PACKET_CONTENT_SIZE);
           break;
         }
       }
 
       packet.header.length = content_length;
+      packet.content_size = content_length; // Should not be sent!
 
       if (packet.header.length > 0)
       {

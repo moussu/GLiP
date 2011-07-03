@@ -49,15 +49,20 @@ typedef struct
 } olsr_packet_hdr_t;
 
 # define MAX_PACKET_MESSAGES 10
-# define MAX_PACKET_CONTENT_SIZE                        \
-  (MAX_PACKET_MESSAGES * MAX_MESSAGE_CONTENT_SIZE)
+# define MAX_PACKET_CONTENT_SIZE                \
+  (MAX_PACKET_MESSAGES * MAX_MESSAGE_SIZE)
 # define MAX_PACKET_SIZE                                \
   (MAX_PACKET_CONTENT_SIZE + sizeof(olsr_packet_hdr_t))
 
 typedef struct
 {
   olsr_packet_hdr_t header;
-  packet_byte_t content[MAX_MESSAGE_CONTENT_SIZE];
+  packet_byte_t content[MAX_PACKET_CONTENT_SIZE];
+
+  // /!\ //
+  // Should remain after the content fo olsr_packet_t to be copied directly!
+  // /!\ //
+
   int content_size;
 } olsr_packet_t;
 

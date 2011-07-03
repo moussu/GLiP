@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "olsr_constants.h"
 #include "udp_comm.h"
 #include "simulator.h"
 
@@ -78,9 +79,20 @@ simulator_send(const char* message, int size, interface_t iface)
       break;
   }
 
+  size += 2;
+
+  if (size > SIMULATOR_BUFSIZE)
+  {
+    ERROR("packet too long to be sent");
+    return;
+  }
+
   size = (size > SIMULATOR_BUFSIZE) ? SIMULATOR_BUFSIZE : size;
 
-  memcpy(buffer + 2, message, size);
+  memcpy(buffer + 2, message, size - 2);
+
+  DEBUG_SEND("sending [mIFACEpacket] of size %d to iface %s to simulator",
+             size, olsr_iface_str(iface));
 
   udp_client_send(&simulator.client, buffer, size);
 }

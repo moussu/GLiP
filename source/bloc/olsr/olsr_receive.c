@@ -90,6 +90,14 @@ olsr_receive_callback(int iSocket, void* pvContext)
            length - sizeof(olsr_packet_hdr_t) - 1);
     packet.content_size = length - sizeof(olsr_packet_hdr_t) - 1;
 
+    if (packet.content_size != packet.header.length - sizeof(olsr_packet_hdr_t))
+    {
+      ERROR("corrupted packet received from iface %s, "
+            "length in header is %d and content size is %d",
+            olsr_iface_str(iface), packet.header.length, packet.content_size);
+      goto error;
+    }
+
     if (pdPASS != xQueueSendFromISR(receive_queues[iface], &packet,
                                     &xHigherTaskWoken))
       goto error;
@@ -97,7 +105,7 @@ olsr_receive_callback(int iSocket, void* pvContext)
   }
 
   error:
-  printf("UDP Rx failed\n");
+  WARNING("UDP Rx failed");
   isr:
   portEND_SWITCHING_ISR(xHigherTaskWoken);
 }
