@@ -9,7 +9,7 @@ OBJS = $(notdir $(SRCS:.c=.o)) tasks.o queue.o 		\
 
 include ../Makefile.inc
 
-DIRS = olsr utils watchdog comm AsyncIO charmap
+DIRS = olsr utils watchdog comm AsyncIO charmap image
 CFLAGS += -D_GNU_SOURCE -DDEBUG -DWARNINGS -DERRORS -include debug.h
 CFLAGS += $(addprefix -I,$(DIRS))
 VPATH += $(DIRS)
