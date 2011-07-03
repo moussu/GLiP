@@ -95,7 +95,7 @@ typedef enum
   WILL_ALWAYS  = 7,
 } willingness_t;
 
-# ifdef DEBUG
+# if defined DEBUG || defined ERRORS || defined WARNINGS
 # include <stm32f10x.h>
 # include "olsr_ifaces.h"
 const char* olsr_neighbor_type_str(neighbor_type_t t);
