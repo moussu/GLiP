@@ -16,6 +16,8 @@
   default:                                      \
   DEFAULT_(Var)
 
+#if defined DEBUG || defined ERRORS || defined WARNINGS
+
 static const char* message = "ERROR:%d";
 
 const char*
@@ -104,3 +106,5 @@ olsr_iface_str(interface_t iface)
       DEFAULT_(iface);
   }
 }
+
+#endif
