@@ -439,10 +439,27 @@ static pixel_t image[64] = {0};
 void
 olsr_application_job()
 {
+  static int i_ = 0, j_ = 0, w_ = 0, h_ = 0;
+  static address_t leader_ = 0;
+  static interface_t north_ = NORTH_IFACE;
+
   address_t leader = olsr_mesh_leader();
   interface_t north = olsr_mesh_north(leader);
   int i, j, w, h;
   olsr_mesh_coords(north, &w, &h, &i, &j);
+
+  if (i != i_ || j != j_ || w != w_ || h != h_
+      || leader != leader_ || north != north_)
+  {
+    DEBUG_APPLI("leader:%d north:%s i:%d j:%d w:%d h:%d",
+                leader, olsr_iface_str(north), i, j, w, h);
+    i_ = i;
+    j_ = j;
+    w_ = w;
+    h_ = h;
+    leader_ = leader;
+    north_  = north;
+  }
 
   image_reset(image);
 
@@ -453,7 +470,4 @@ olsr_application_job()
   image_direct(image, north);
 
   simulator_set_image_pointer(image);
-
-  DEBUG_APPLI("leader:%d north:%s i:%d j:%d w:%d h:%d",
-              leader, olsr_iface_str(north), i, j, w, h);
 }
