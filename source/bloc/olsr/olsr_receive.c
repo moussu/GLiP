@@ -114,6 +114,10 @@ static void
 olsr_receive_task(void* pvParameters)
 {
   olsr_packet_t packet;
+#ifdef WARNINGS
+  portTickType xLastLastWakeTime = xTaskGetTickCount();
+#endif
+
 
 #ifdef DEBUG
   int i __attribute__((unused)) = -1;
@@ -152,6 +156,23 @@ olsr_receive_task(void* pvParameters)
 
       DEBUG_DEC;
     }
+
+#ifdef WARNINGS
+    // Here we set HELLO_INTERVAL_MS as the maximum refresh period
+    // of this task as this is the smallest period involved in the
+    // protocol. It guarantees that hello messages from all interfaces
+    // have been properly processed.
+
+    if ((xTaskGetTickCount() - xLastLastWakeTime) * portTICK_RATE_MS
+        > HELLO_INTERVAL_MS)
+    {
+      WARNING("recvTask delay exceeded: %dms when max is %dms",
+              (xTaskGetTickCount() - xLastLastWakeTime) * portTICK_RATE_MS,
+              HELLO_INTERVAL_MS);
+    }
+
+    xLastLastWakeTime = xTaskGetTickCount();
+#endif
 
     olsr_global_mutex_take();
     olsr_routing_table_compute();
