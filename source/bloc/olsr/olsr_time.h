@@ -18,9 +18,14 @@ inline olsr_time_t olsr_deserialize_time(time_serialized_t t)
   return (olsr_time_t)t;
 }
 
+inline olsr_time_t olsr_ms_to_time(float t_s)
+{
+  return (olsr_time_t)t_s;
+}
+
 inline olsr_time_t olsr_seconds_to_time(float t_s)
 {
-  return (olsr_time_t)(t_s * 1000);
+  return olsr_ms_to_time(t_s * 1000);
 }
 
 olsr_time_t olsr_get_current_time();

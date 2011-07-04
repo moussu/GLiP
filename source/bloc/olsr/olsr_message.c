@@ -140,7 +140,7 @@ olsr_default_forward(packet_byte_t* message, int size, interface_t iface)
   FOREACH_DUPLICATE_EREW(tuple,
     if (tuple->addr == header->addr && tuple->sn == header->sn)
     {
-      tuple->time = olsr_get_current_time() + DUP_HOLD_TIME_S;
+      tuple->time = olsr_get_current_time() + olsr_ms_to_time(DUP_HOLD_TIME_MS);
       bool has_iface = FALSE;
       for (int i = 0; i < tuple->n_ifaces; i++)
         if (tuple->ifaces[i] == iface)
@@ -158,7 +158,7 @@ olsr_default_forward(packet_byte_t* message, int size, interface_t iface)
       {
         .addr = header->addr,
         .sn = header->sn,
-        .time = olsr_get_current_time() + olsr_seconds_to_time(DUP_HOLD_TIME_S),
+        .time = olsr_get_current_time() + olsr_ms_to_time(DUP_HOLD_TIME_MS),
         .ifaces = {0},
         .n_ifaces = 1,
         .retrans = must_be_retransmited,
