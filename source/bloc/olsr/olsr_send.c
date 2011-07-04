@@ -217,7 +217,8 @@ olsr_send_task(void* pvParameters)
       }
 
 #ifdef WARNINGS
-      if ((xTaskGetTickCount() - xLastLastWakeTime) > MAXJITTER_MS)
+      if ((xTaskGetTickCount() - xLastLastWakeTime) * portTICK_RATE_MS
+          > MAXJITTER_MS)
       {
         WARNING("sendTask delay exceeded: %dms when max is %dms",
                 (xTaskGetTickCount() - xLastLastWakeTime) * portTICK_RATE_MS,
