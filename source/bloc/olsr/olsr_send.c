@@ -199,15 +199,19 @@ olsr_send_task(void* pvParameters)
       {
         packet.header.length += sizeof(olsr_packet_hdr_t);
         packet.header.sn++;
-        simulator_send((char*)&packet, packet.header.length, iface);
+        const int sent =
+          simulator_send((char*)&packet, packet.header.length, iface);
+
+        if (sent != packet.header.length)
+          ERROR("packet was not sent entirely sent %d != size %d",
+                sent, packet.header.length);
 
 #ifdef DEBUG
         DEBUG_DEC;
 
         DEBUG_SEND("send packet[mess:%d, size:%d] -> iface %s",
-                    message_count, (int)packet.header.length,
-                    olsr_iface_str(iface));
-
+                   message_count, (int)packet.header.length,
+                   olsr_iface_str(iface));
         DEBUG_DEC;
 #endif
       }

@@ -26,7 +26,7 @@ udp_client_init(struct udp_comm_t* c, const char* addr, int port)
   c->addr_size = sizeof(c->addr);
 }
 
-void
+int
 udp_client_send(struct udp_comm_t* c, const char* message, int size)
 {
   int retcode = sendto(c->socket, message, size, 0,
@@ -38,6 +38,8 @@ udp_client_send(struct udp_comm_t* c, const char* message, int size)
             errno, strerror(errno));
     exit(errno);
   }
+
+  return retcode;
 }
 
 void

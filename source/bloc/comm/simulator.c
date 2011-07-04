@@ -57,7 +57,7 @@ simulator_set_image_pointer(image_t image)
   udp_client_send(&simulator.client, buffer, size);
 }
 
-void
+int
 simulator_send(const char* message, int size, interface_t iface)
 {
   static char buffer[SIMULATOR_BUFSIZE];
@@ -84,7 +84,7 @@ simulator_send(const char* message, int size, interface_t iface)
   if (size > SIMULATOR_BUFSIZE)
   {
     ERROR("packet too long to be sent");
-    return;
+    return -1;
   }
 
   size = (size > SIMULATOR_BUFSIZE) ? SIMULATOR_BUFSIZE : size;
@@ -94,7 +94,7 @@ simulator_send(const char* message, int size, interface_t iface)
   DEBUG_SEND("sending [mIFACEpacket] of size %d to iface %s to simulator",
              size, olsr_iface_str(iface));
 
-  udp_client_send(&simulator.client, buffer, size);
+  return udp_client_send(&simulator.client, buffer, size) - 2;
 }
 
 int
