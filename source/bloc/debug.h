@@ -138,10 +138,11 @@ void textcolor(color_t color);
 # endif
 
 # ifdef ERRORS
-#  define ERROR(S, ...)                          \
-  {                                              \
-    PRINT(S, LRED, ##__VA_ARGS__);               \
-    abort();                                     \
+#  define ERROR(S, ...)                                         \
+  {                                                             \
+    PRINT(S, LRED, ##__VA_ARGS__);                              \
+    fflush(stdout);                                             \
+    abort();                                                    \
   }
 # else
 #  define ERROR(S, ...)
