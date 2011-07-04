@@ -38,29 +38,24 @@
 # define APP_INTERVAL_MS   (100)
 
 // 18.2.  Emission Intervals:
-# define HELLO_INTERVAL_S   (2)
-# define REFRESH_INTERVAL_S (2)
-# define TC_INTERVAL_S      (5)
-# define MID_INTERVAL_S     TC_INTERVAL_S
-# define HNA_INTERVAL_S     TC_INTERVAL_S
+# define HELLO_INTERVAL_MS   (2000)
+# define REFRESH_INTERVAL_MS (2000)
+# define TC_INTERVAL_MS      (5000)
 
 // 18.3.  Holding Time:
-# define NEIGHB_HOLD_TIME_S (3 * REFRESH_INTERVAL_S)
-# define TOP_HOLD_TIME_S    (3 * TC_INTERVAL_S)
-# define DUP_HOLD_TIME_S    (30)
-# define MID_HOLD_TIME_S    (3 * MID_INTERVAL_S)
-# define HNA_HOLD_TIME_S    (3 * HNA_INTERVAL_S)
+# define NEIGHB_HOLD_TIME_MS (3 * REFRESH_INTERVAL_MS)
+# define TOP_HOLD_TIME_MS    (3 * TC_INTERVAL_MS)
+# define DUP_HOLD_TIME_MS    (30000)
 
 // 18.9.  Misc. Constants:
 # define TC_REDUNDANCY 0
 # define MPR_COVERAGE  1
-# define MAXJITTER_MS  (1000 * HELLO_INTERVAL_S / 4)
+# define MAXJITTER_MS  (HELLO_INTERVAL_MS / 4)
 
 // 18.7.  Link Hysteresis:
 # define HYST_THRESHOLD_HIGH 0.8f
 # define HYST_THRESHOLD_LOW  0.3f
 # define HYST_SCALING        0.5f
-
 
 // 18.5.  Link Types:
 typedef enum

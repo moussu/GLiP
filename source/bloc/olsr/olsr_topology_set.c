@@ -44,7 +44,7 @@ olsr_generate_tc_message(olsr_message_t* tc_message)
 
   tc_message->header.type = TC_MESSAGE;
   tc_message->header.Vtime = olsr_serialize_time(
-    olsr_seconds_to_time(TOP_HOLD_TIME_S));
+    olsr_ms_to_time(TOP_HOLD_TIME_MS));
   tc_message->header.ttl = 255;
   tc_message->header.size = sizeof(olsr_message_hdr_t);
   tc_message->content_size = 0;
@@ -246,7 +246,7 @@ olsr_tc_force_send()
   xSemaphoreGive(force_send_mutex);*/
 }
 
-#define TC_EFFECTIVE (TC_INTERVAL_S * 1000 - MAXJITTER_MS)
+#define TC_EFFECTIVE (TC_INTERVAL_MS - MAXJITTER_MS)
 
 static void
 olsr_tc_task(void* pvParameters)
@@ -287,7 +287,7 @@ olsr_tc_task(void* pvParameters)
       }
 
       if ((xTaskGetTickCount() - first_empty_time)
-          > (TOP_HOLD_TIME_S * 1000))
+          > TOP_HOLD_TIME_MS)
         continue;
     }
     else

@@ -175,7 +175,7 @@ olsr_process_hello_message(packet_byte_t* message, int size,
             DEBUG_HELLO("SYM_LINK or ASYM_LINK -> prolongate link tuple SYM_time");
             tuple->L_SYM_time = olsr_get_current_time() + Vtime;
             tuple->L_time = tuple->L_SYM_time
-              + olsr_seconds_to_time(NEIGHB_HOLD_TIME_S);
+              + olsr_ms_to_time(NEIGHB_HOLD_TIME_MS);
           }
           // UNSPEC LINK should not be processed!
 
@@ -385,14 +385,14 @@ olsr_generate_hello(olsr_message_t* hello_message, interface_t iface)
 
   hello_message->header.type = HELLO_MESSAGE;
   hello_message->header.Vtime = olsr_serialize_time(
-    olsr_seconds_to_time(NEIGHB_HOLD_TIME_S));
+    olsr_ms_to_time(NEIGHB_HOLD_TIME_MS));
   hello_message->header.ttl = 1;
   hello_message->header.size = sizeof(olsr_message_hdr_t);
   hello_message->content_size = 0;
 
   olsr_hello_message_hdr_t hello_header;
   hello_header.Htime = olsr_serialize_time(
-    olsr_seconds_to_time(HELLO_INTERVAL_S));
+    olsr_ms_to_time(HELLO_INTERVAL_MS));
   hello_header.willingness = willingness;
 
   olsr_message_append(hello_message, &hello_header,
@@ -488,7 +488,7 @@ olsr_hello_force_send()
   */
 }
 
-#define HELLO_EFFECTIVE (HELLO_INTERVAL_S * 1000 - MAXJITTER_MS)
+#define HELLO_EFFECTIVE (HELLO_INTERVAL_MS - MAXJITTER_MS)
 
 static void
 olsr_hello_task(void* pvParameters)
