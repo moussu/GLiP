@@ -209,9 +209,9 @@ olsr_send_task(void* pvParameters)
 #ifdef DEBUG
         DEBUG_DEC;
 
-        DEBUG_SEND("send packet[mess:%d, size:%d] -> iface %s",
-                   message_count, (int)packet.header.length,
-                   olsr_iface_str(iface));
+        DEBUG_SEND("send packet[mess:%d, sn:%d, size:%d] -> iface %s",
+                   message_count, packet.header.sn,
+                   (int)packet.header.length, olsr_iface_str(iface));
         DEBUG_DEC;
 #endif
       }
