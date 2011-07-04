@@ -18,7 +18,7 @@ extern int __debug_indent__;
 
 void textcolor(color_t color);
 
-# define PRINT_(S, Color, ...)                                          \
+# define PRINT(S, Color, ...)                                           \
   {                                                                     \
     printf("[%d]{%010d} ", __debug_id__, olsr_get_current_time());      \
     for (int __i__ = 0; __i__ < __debug_indent__; __i__++)              \
@@ -38,16 +38,9 @@ void textcolor(color_t color);
   __debug_indent__--
 
 # ifdef DEBUG
-
-#  define PRINT(S, Color, ...)                                          \
-    PRINT_(S, Color, ##__VA_ARGS__);                                    \
-
 #  define DEBUG_PRINT(S, Color, ...)            \
   PRINT(S, Color, ##__VA_ARGS__)
-
 # else
-#  define PRINT(S, Color, ...)                  \
-  PRINT_(S, Color, ##__VA_ARGS__)
 #  define DEBUG_PRINT(S, Color, ...)
 # endif
 
@@ -146,8 +139,10 @@ void textcolor(color_t color);
 
 # ifdef ERRORS
 #  define ERROR(S, ...)                          \
-  PRINT(S, LRED, ##__VA_ARGS__);                 \
-  abort()
+  {                                              \
+    PRINT(S, LRED, ##__VA_ARGS__);               \
+    abort();                                     \
+  }
 # else
 #  define ERROR(S, ...)
 # endif
