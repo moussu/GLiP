@@ -17,7 +17,7 @@ struct udp_comm_t
 };
 
 void udp_client_init(struct udp_comm_t* c, const char* addr, int port);
-void udp_client_send(struct udp_comm_t* c, const char* message, int size);
+int udp_client_send(struct udp_comm_t* c, const char* message, int size);
 void udp_server_init(struct udp_comm_t* c, const char* addr, int port,
                      socket_callback_t callback);
 int udp_server_recv(struct udp_comm_t* c, char* message, int max_size);
