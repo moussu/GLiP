@@ -86,16 +86,22 @@ olsr_receive_callback(int iSocket, void* pvContext)
   if (olsr_iface_parse(xPacket.ucPacket[0], &iface) != -1)
   {
     memcpy(&packet.header, xPacket.ucPacket + 1, sizeof(olsr_packet_hdr_t));
+    packet.content_size = packet.header.length - sizeof(olsr_packet_hdr_t);
     memcpy(packet.content, xPacket.ucPacket + 1 + sizeof(olsr_packet_hdr_t),
-           length - sizeof(olsr_packet_hdr_t) - 1);
-    packet.content_size = length - sizeof(olsr_packet_hdr_t) - 1;
+           packet.content_size);
 
-    if (packet.content_size != packet.header.length - sizeof(olsr_packet_hdr_t))
+    if (length - 1 < packet.header.length)
     {
       ERROR("corrupted packet received from iface %s, "
-            "length in header is %d and content size is %d",
-            olsr_iface_str(iface), packet.header.length, packet.content_size);
+            "length in header is %d and content size is %d, sn is %d",
+            olsr_iface_str(iface), length - 1, packet.header.length,
+            packet.header.sn);
       goto error;
+    }
+    else if (length - 1 > packet.header.length)
+    {
+      WARNING("too long packet received %d bytes for a %d bytes packet",
+              length - 1, packet.header.length);
     }
 
     if (pdPASS != xQueueSendFromISR(receive_queues[iface], &packet,

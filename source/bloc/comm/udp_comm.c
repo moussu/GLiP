@@ -14,6 +14,9 @@
 #include <AsyncIOSocket.h>
 
 #include "udp_comm.h"
+#ifdef DEBUG
+# include "olsr/olsr_packet.h"
+#endif
 
 void
 udp_client_init(struct udp_comm_t* c, const char* addr, int port)
@@ -29,6 +32,18 @@ udp_client_init(struct udp_comm_t* c, const char* addr, int port)
 int
 udp_client_send(struct udp_comm_t* c, const char* message, int size)
 {
+#ifdef DEBUG
+  if (message[0] == 'm')
+  {
+    olsr_packet_hdr_t* header = (olsr_packet_hdr_t*)(message + 2);
+    if (size - 2 != header->length)
+    {
+      ERROR("size of packet is not coherent with number of bytes being sent %d != %d",
+            size - 2, header->length);
+    }
+  }
+#endif
+
   int retcode = sendto(c->socket, message, size, 0,
                        (struct sockaddr*)&(c->addr), c->addr_size);
 
