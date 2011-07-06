@@ -92,11 +92,11 @@ olsr_receive_callback(int iSocket, void* pvContext)
 
     if (length - 1 < packet.header.length)
     {
-      ERROR("corrupted packet received from iface %s, "
-            "length in header is %d and content size is %d, sn is %d",
-            olsr_iface_str(iface), length - 1, packet.header.length,
-            packet.header.sn);
-      goto error;
+      WARNING("corrupted packet received from iface %s, "
+              "length in header is %d and content size is %d, sn is %d",
+              olsr_iface_str(iface), length - 1, packet.header.length,
+              packet.header.sn);
+      goto isr;
     }
     else if (length - 1 > packet.header.length)
     {

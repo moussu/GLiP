@@ -13,30 +13,33 @@ olsr_process_packet(olsr_packet_t* packet, interface_t iface)
 
   packet_byte_t* message = packet->content;
 
-  if (packet->header.length != packet->content_size + sizeof(olsr_packet_hdr_t))
+  if (packet->header.length != packet->content_size
+      + sizeof(olsr_packet_hdr_t))
   {
-    ERROR("packet header length and packet content size are not consistent %d != %d",
-          packet->header.length, (int)(packet->content_size + sizeof(olsr_packet_hdr_t)));
-    return;
+    WARNING("packet header length and packet content size "
+            "are not consistent %d != %d", packet->header.length,
+            (int)(packet->content_size + sizeof(olsr_packet_hdr_t)));
   }
 
   for (;;)
   {
     olsr_message_hdr_t* header = (olsr_message_hdr_t*)message;
 
-    // Check our pointer is INSIDE the packet USING packet content size:
+    // Check our pointer is INSIDE the packet:
     if (message >= (packet->content + packet->content_size))
       break;
 
     // Check header is complete:
-    if ((message + sizeof(olsr_message_hdr_t)) > (packet->content + packet->content_size))
+    if ((message + sizeof(olsr_message_hdr_t))
+        > (packet->content + packet->content_size))
     {
       ERROR("incomplete header in packet");
       break;
     }
 
     // Check the whole message content is in the packet:
-    if ((message + header->size) > (packet->content + packet->content_size))
+    if ((message + header->size)
+        > (packet->content + packet->content_size))
     {
       ERROR("incomplete message in packet");
       break;
@@ -51,8 +54,7 @@ olsr_process_packet(olsr_packet_t* packet, interface_t iface)
 
     DEBUG_RECEIVE("message [type:%s, addr:%d, sn:%d]",
                   olsr_message_type_str(header->type),
-                  header->addr,
-                  header->sn);
+                  header->addr, header->sn);
 
     DEBUG_INC;
     olsr_dispatch_message(message, header->size, iface);
