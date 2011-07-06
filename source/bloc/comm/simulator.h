@@ -4,9 +4,10 @@
 # include "olsr/olsr_ifaces.h"
 # include "image/image.h"
 # include "udp_comm.h"
+# include "mtu.h"
 
 # define SIMULATOR_PORT 4444
-# define SIMULATOR_BUFSIZE 65535
+# define SIMULATOR_BUFSIZE MTU
 
 typedef struct
 {

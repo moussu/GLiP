@@ -8,8 +8,13 @@ package simulator {
     private val lock = new Lock
 
     def main(args: Array[String]) {
-      val view   = new   View(SimpleModel, lock)
-      val server = new Server(view.getPool, lock)
+      var bufferSize = 65535
+
+      if (args.size == 1)
+        bufferSize = args(0).toInt
+
+      val view   = new   View(SimpleModel,  lock)
+      val server = new Server(view.getPool, lock, bufferSize)
 
       view.createFrame()
       server.start()

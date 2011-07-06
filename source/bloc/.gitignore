@@ -1,3 +1,5 @@
 core
 *.pid
 dashes.h
+mtu.h
+*.tmp

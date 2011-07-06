@@ -45,7 +45,7 @@ make || exit $?
 
 cd ../simulator
 sbt compile || exit 1
-sbt run &
+sbt "run $(../scripts/mtu)" &
 sbt=$!
 cd -
 

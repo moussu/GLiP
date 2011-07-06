@@ -1,6 +1,7 @@
 #ifndef OLSR_MESSAGE_H
 # define OLSR_MESSAGE_H
 
+# include "olsr_packet.h"
 # include "olsr_ifaces.h"
 # include "olsr_types.h"
 # include "olsr_time.h"
@@ -112,11 +113,10 @@ typedef struct
      by any node. */
 } olsr_message_hdr_t;
 
-
-# define MAX_MESSAGE_CONTENT_SIZE               \
-  (1024 - sizeof(olsr_message_hdr_t))
-# define MAX_MESSAGE_SIZE                                       \
-  (MAX_MESSAGE_CONTENT_SIZE + sizeof(olsr_message_hdr_t))
+# define MAX_MESSAGE_SIZE                               \
+  (MAX_PACKET_CONTENT_SIZE / MAX_PACKET_MESSAGES)
+# define MAX_MESSAGE_CONTENT_SIZE                       \
+  (MAX_MESSAGE_SIZE - sizeof(olsr_message_hdr_t))
 
 typedef struct
 {
