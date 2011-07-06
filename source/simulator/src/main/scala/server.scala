@@ -6,18 +6,19 @@ import scala.actors._
 
 package simulator.ether {
 
-  class Server(val pool: Pool, val lock: Lock) extends Actor {
+  class Server(val pool: Pool, val lock: Lock,
+               val bufferSize: Int) extends Actor {
     import Block._
 
     val port    = 4444
-    val bufsize = 65535
-    val buffer  = new Array[Byte](bufsize)
+    val buffer  = new Array[Byte](bufferSize)
     val socket  = new DatagramSocket(port)
-    val packet  = new DatagramPacket(buffer, bufsize)
+    val packet  = new DatagramPacket(buffer, bufferSize)
     var portsToBlocks  = Map[Int, Block]()
     var blocksToPorts  = Map[Block, Int]()
 
     println ("UDP server started: localhost:" + port)
+    println ("buffer size is " + bufferSize)
 
     def act() = {
       while (true) {

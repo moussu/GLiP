@@ -2,8 +2,9 @@
 # define OLSR_PACKET_H
 
 # include <stdint.h>
+# include "mtu.h"
+# include "olsr_ifaces.h"
 # include "olsr_types.h"
-# include "olsr_message.h"
 
 /*
        0                   1                   2                   3
@@ -48,11 +49,10 @@ typedef struct
      transmitted over an interface are sequentially enumerated. */
 } olsr_packet_hdr_t;
 
-# define MAX_PACKET_MESSAGES 10
+# define MAX_PACKET_SIZE MTU
 # define MAX_PACKET_CONTENT_SIZE                \
-  (MAX_PACKET_MESSAGES * MAX_MESSAGE_SIZE)
-# define MAX_PACKET_SIZE                                \
-  (MAX_PACKET_CONTENT_SIZE + sizeof(olsr_packet_hdr_t))
+  (MAX_PACKET_SIZE - sizeof(olsr_packet_hdr_t))
+# define MAX_PACKET_MESSAGES 10
 
 typedef struct
 {

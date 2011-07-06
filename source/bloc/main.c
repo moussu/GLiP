@@ -10,6 +10,8 @@
 #include <croutine.h>
 
 #include "olsr/olsr.h"
+#include "olsr/olsr_packet.h"
+#include "olsr/olsr_message.h"
 #include "comm/simulator.h"
 
 int
@@ -18,6 +20,11 @@ main (int argc, char** argv)
   const int id = simulator_init(atoi(argv[1]), olsr_receive_callback);
   const address_t main_address = id << 2;
   DEBUG_SET_ID(id);
+  DEBUG_SERVER("MAX_PACKET_SIZE is          %d", (int)MAX_PACKET_SIZE);
+  DEBUG_SERVER("MAX_PACKET_CONTENT_SIZE is  %d", (int)MAX_PACKET_CONTENT_SIZE);
+  DEBUG_SERVER("MAX_PACKET_MESSAGES is      %d", (int)MAX_PACKET_MESSAGES);
+  DEBUG_SERVER("MAX_MESSAGE_SIZE is         %d", (int)MAX_MESSAGE_SIZE);
+  DEBUG_SERVER("MAX_MESSAGE_CONTENT_SIZE is %d", (int)MAX_MESSAGE_CONTENT_SIZE);
   DEBUG_SERVER("main address is 0x%x", main_address);
   olsr_init(main_address);
 

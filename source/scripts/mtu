@@ -1,0 +1,5 @@
+#! /bin/sh
+
+ifconfig | grep -A7 "lo" | grep MTU | sed "s/.*MTU:\([0-9]\+\).*/\1/g"
+
+exit 0

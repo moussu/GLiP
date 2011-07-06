@@ -10,8 +10,9 @@
 
 #include <FreeRTOS.h>
 #include <netinet/in.h>
+#include "mtu.h"
 
-#define UDP_PACKET_SIZE		( 65535UL )
+#define UDP_PACKET_SIZE	MTU
 
 typedef struct UDP_PACKET
 {
