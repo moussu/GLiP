@@ -26,7 +26,13 @@ package simulator.view {
     }
 
     override def keyPressed() {
-      if (key == ' ')
+      if (key == ' ') {
+        selected foreach {
+          b => pool.rotateBlock(b)
+        }
+        redraw()
+      }
+      else if (key == 'd')
         detailed = ! detailed
     }
 
@@ -38,12 +44,6 @@ package simulator.view {
             offsetY = mouseY - b.y
           }
         }
-      }
-      else {
-        pool.getBlockAt(mouseX, mouseY) foreach {
-          b => pool.rotateBlock(b)
-        }
-        redraw()
       }
     }
 
