@@ -15,6 +15,7 @@ package simulator.view {
     private var detailed: Boolean = false
     private var offsetX:  Int = 0
     private var offsetY:  Int = 0
+    private val maxSpeed = 15
 
     def getPool(): Pool = pool
 
@@ -49,7 +50,7 @@ package simulator.view {
 
     override def mouseDragged() {
       selected foreach { b => {
-        pool.moveBlock(b, mouseX - offsetX, mouseY - offsetY)
+        pool.moveBlockTowards(b, mouseX - offsetX, mouseY - offsetY, maxSpeed, this)
         redraw()
       }}
     }
@@ -60,6 +61,9 @@ package simulator.view {
 
     override def draw() = {
       background(50)
+      selected foreach { b => {
+        pool.moveBlockTowards(b, mouseX - offsetX, mouseY - offsetY, maxSpeed, this)
+      }}
       pool.draw(this, lock, detailed)
     }
 
