@@ -20,7 +20,7 @@ debug.h: dashes.h
 dashes.h: dashes.py
 	./$< 20 > $@
 
-olsr/olsr_packet.h: mtu.h
+AsyncIO/AsyncIOSocket.h olsr/olsr_packet.h: mtu.h
 mtu.h: mtu.py
 	./$< $$(../scripts/mtu) > $@.tmp
 	mv $@.tmp $@
