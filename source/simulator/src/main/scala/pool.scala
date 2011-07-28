@@ -2,16 +2,21 @@ import processing.core._
 import scala.collection.mutable._
 import scala.concurrent._
 import simulator.ether._
+import java.awt.Rectangle
+import scala.math._
+import compat.Platform._
 
 package simulator.view {
 
-  class Pool(val model: Model, val windowWidth: Int, val windowHeight: Int,
+  class Pool(val model: Model,
+             val windowWidth: Int, val windowHeight: Int,
              var randomAngle: Boolean) {
     import Model._
     import Block._
 
     private var pool: LinkedList[Block] = LinkedList()
     val padding: Int = 10
+    val minPadding: Int = 2
     val maxHeight: Int = 4 * (Block.height + padding)
     val maxWidth:  Int = 4 * (Block.width  + padding)
 
@@ -38,12 +43,10 @@ package simulator.view {
 
     def offsetX(w: Int): Int = (Block.width  + windowWidth  - w) / 2 + padding
     def offsetY(h: Int): Int = (Block.height + windowHeight - h) / 2 + padding
-    def nextIJ(k: Int, l: Int): (Int, Int) =
-      if (k <= l) (k, l) else (l, 2 * l - k)
 
     def addBlock(): Block = {
       val block: Block = new Block(randomAngle)
-      val (i, j) = nextIJ(k, l)
+      val (i, j) = if (k <= l) (k, l) else (l, 2 * l - k)
       val x = j * (Block.width  + padding) + offsetX(maxWidth)
       val y = i * (Block.height + padding) + offsetY(maxHeight)
 
@@ -88,75 +91,101 @@ package simulator.view {
       }
     }
 
-    def putBlockAt (newB: Block, x: Int, y: Int) = {
-      val oldX: Int = newB.x
-      val oldY: Int = newB.y
-
-      newB.move(x, y)
-
-      if (isRoomFor(newB)) {
-        pool.insert(LinkedList(newB))
+    def putBlockAt(b: Block, x: Int, y: Int) = {
+      if (isRoomFor(x, y, Block.width, Block.height)) {
+        b.move(x, y)
+        pool.insert(LinkedList(b))
         model.declareDirty()
       }
-      else
-        newB.move(oldX, oldY)
-      //FIXME: Do not keep this, use functions using x, y args
-      //instead of a block (isRoomFor)
     }
 
     def getBlockAt(x: Int, y: Int): Option[Block] = {
       for (b <- pool) {
         if (b.isInside(x, y))
+          // One has to declare the model dirty depending on what will
+          // be done with that block.
           return Some(b)
       }
+
       println("No block")
       return None
     }
-    //FIXME: won't dirty the model as it is used, but could...
 
-    def moveBlock(b: Block, newX: Int, newY: Int) = {
-      val oldX: Int = b.x
-      val oldY: Int = b.y
+    def moveBlockTowards(b: Block, x: Int, y: Int, speed: Int, context: PApplet) = {
+      val dx = x - b.x
+      val dy = y - b.y
+      val norm = sqrt(dx * dx + dy * dy)
+      val ux = speed * dx / norm
+      val uy = speed * dy / norm
 
-      val x = if (math.abs(newX - oldX) < Block.width  / 2)
-          newX
-        else
-          oldX
+      if (norm < speed)
+        moveBlock(b, x, y, context)
+      else if ((ux, uy) != (0, 0))
+        moveBlock(b, b.x + ux.toInt, b.y + uy.toInt, context)
+    }
 
-      val y = if (math.abs(newY - oldY) < Block.width  / 2)
-          newY
-        else
-          oldY
-
-      b.move(x, y)
-
-      //FIXME: Common, you can do better...
-      if (isRoomFor(b))
-        model.declareDirty()
-      else {
-        b.move(oldX, y)
-        if (isRoomFor(b))
-          model.declareDirty()
-        else {
-          b.move(x, oldY)
-          if (isRoomFor(b))
-            model.declareDirty()
-          else
-            b.move(oldX, oldY)
-        }
+    def moveBlock(b: Block, x: Int, y: Int, context: PApplet): Unit = {
+      var p = capValues(b, x, y, context)
+      if ((b.x, b.y) != (p._1, p._2)) {
+        b.move(p._1, p._2)
+        model.declareDirty
       }
-      //FIXME: Do not keep this, use functions using x, y args
-      //instead of a block (isRoomFor)
     }
 
     def rotateBlock(b: Block) = {
       b.rotate()
-
       model.declareDirty()
     }
 
-    def isRoomFor(b: Block) = {
-      pool.filter(x => x != b && x.intersects(b)).length == 0
+    def isRoomFor(b: Block): Boolean = {
+      return pool.filter(x => x != b && x.intersects(b)).length == 0
+    }
+
+    def capValues(block: Block, x: Int, y: Int, context: PApplet): (Int, Int) = {
+      val newB = new Block(x, y)
+      val blockr = block.asRectangle
+
+      for (b <- pool) {
+        if (b != block) {
+          val br = b.asRectangle
+          var draw = false
+
+          if (b.intersects(newB, minPadding / 2)) {
+            draw = true
+            if (abs(b.x - newB.x) < Block.width + minPadding &&
+                abs(b.x - block.x) > abs(b.y - block.y))
+              newB.x = b.x + signum(newB.x - b.x) * (Block.width + minPadding)
+            else if (abs(b.y - newB.y) < Block.height + minPadding &&
+                     abs(b.y - block.y) > abs(b.x - block.x))
+              newB.y = b.y + signum(newB.y - b.y) * (Block.height + minPadding)
+          }
+
+          for ((dx, dy) <- List(( Block.width / 2,  Block.height / 2),
+                                (-Block.width / 2,  Block.height / 2),
+                                ( Block.width / 2, -Block.height / 2),
+                                (-Block.width / 2, -Block.height / 2))) {
+            if (br.intersectsLine(block.x + dx, block.y + dy, x + dx, y + dy)) {
+              draw = true
+              if (abs(b.x - block.x) > abs(b.y - block.y))
+                newB.x = b.x + signum(block.x - b.x) * (Block.width + minPadding)
+              else if (abs(b.y - block.y) > abs(b.x - block.x))
+                newB.y = b.y + signum(block.y - b.y) * (Block.height + minPadding)
+            }
+          }
+
+          if (draw) {
+            b.mark(255, 0, 0)
+            block.mark(255, 0, 0)
+          }
+        }
+      }
+
+      return (newB.x, newB.y)
+    }
+
+    def isRoomFor(x: Int, y: Int, width: Int, height: Int): Boolean = {
+      val r = new `Rectangle`(x - width / 2, y - height / 2, width, height)
+      return pool.filter(b => b.asRectangle.intersects(r)).length == 0
     }
 
     def send(b: Block, ir: Dir) = {
@@ -167,7 +196,6 @@ package simulator.view {
       model.computeConnections(pool)
     }
 
-    private var cnt: Int = 0
     def draw(context: PApplet, lock: Lock, detailed: Boolean) = {
       lock.acquire
       refresh
@@ -178,15 +206,7 @@ package simulator.view {
 
       model.drawConnections(context)
 
-      pool foreach { b =>
-/*        if (cnt == 0)
-          b.leds.foreach(row =>
-            row.foreach(led =>
-              led.randomColor()))*/
-        b.draw(context, detailed)
-      }
-
-      cnt = (cnt + 1) % 10
+      pool foreach { b => b.draw(context, detailed) }
     }
   }
 

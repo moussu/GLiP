@@ -68,6 +68,7 @@ package simulator.view {
     private val rand: Random = new Random()
 
     def this() = this(0, 0, 0)
+    def this(x: Int, y: Int) = this(x, y, 0)
     def this(randomAngle: Boolean) = {
       this(0, 0, 0)
       if (randomAngle)
@@ -104,12 +105,19 @@ package simulator.view {
       return true
     }
 
-    def asRectangle(): `Rectangle` =
-      new `Rectangle`(x, y, width, height)
-
-    def intersects(other: Block): Boolean = {
-      asRectangle().intersects(other.asRectangle)
+    def asRectangle(margin: Int): `Rectangle` = {
+      val w = width + 2 * margin
+      val h = height + 2 * margin
+      new `Rectangle`(x - w / 2, y - h / 2, w, h)
     }
+
+    def asRectangle(): `Rectangle` = asRectangle(0)
+
+    def intersects(other: Block, margin: Int): Boolean = {
+      asRectangle(margin).intersects(other.asRectangle(margin))
+    }
+
+    def intersects(other: Block): Boolean = intersects(other, 0)
 
     def getIrAt(dir: Dir): (Int, Int) = {
       getIr()(dir)
@@ -134,14 +142,23 @@ package simulator.view {
       angle = angle % 360
     }
 
+    var marked = false
+    var markColor = (0, 0, 0)
+    def mark(r: Int, g: Int, b: Int) = {
+      markColor = (r, g, b)
+      marked = true
+    }
+
     def draw(context: PApplet, detailed: Boolean) = {
       context.pushMatrix()
       context.translate(x, y)
       context.rotate(angle * PI / 180.0f)
       context.fill(0)
+      context.strokeWeight(2)
       context.stroke(255)
       context.rect(startX - x, startY - y, width, height)
 
+      context.strokeWeight(1)
       for (i <- 0 until layout(1); j <- 0 until layout(0)) {
         val offset =  + Led.diameter / 2 + margin
         val x: Int = (j - layout(0) / 2) *
@@ -180,6 +197,14 @@ package simulator.view {
         context.textSize(25)
         context.text(address, -context.textWidth(address) / 2,
                      5, width, height)
+      }
+
+      if (marked) {
+        context.stroke(markColor._1, markColor._2, markColor._3, 255)
+        context.strokeWeight(3)
+        context.noFill
+        context.rect(startX - x, startY - y, width, height)
+        marked = false
       }
 
       context.popMatrix()
