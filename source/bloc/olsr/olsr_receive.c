@@ -143,6 +143,9 @@ olsr_receive_task(void* pvParameters)
       olsr_topology_set_print();
       olsr_routing_table_print();
     }
+    // FIXME: here it seems that the debug helps the concurrency. When
+    // debug is disabled receive tasks seem to starve send tasks. A
+    // simple vTaskDelay could solve things...
 #endif
 
     for (int iface = 0; iface < IFACES_COUNT; iface++)

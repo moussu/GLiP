@@ -74,4 +74,6 @@ This is a TODO list of most urgent features to implement.
    an idea.
    Other sets recomputations may have to be handled that way...
 
+* fix the starvation bug in receive tasks.
+
 Clément Moussu <clement.moussu@gmail.com>
