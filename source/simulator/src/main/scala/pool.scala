@@ -111,7 +111,7 @@ package simulator.view {
       return None
     }
 
-    def moveBlockTowards(b: Block, x: Int, y: Int, speed: Int, context: PApplet) = {
+    def moveBlockTowards(b: Block, x: Int, y: Int, speed: Int, context: PApplet): Boolean = {
       val dx = x - b.x
       val dy = y - b.y
       val norm = sqrt(dx * dx + dy * dy)
@@ -120,8 +120,12 @@ package simulator.view {
 
       if (norm < speed)
         moveBlock(b, x, y, context)
-      else if ((ux, uy) != (0, 0))
+      else if ((ux, uy) != (0, 0)) {
         moveBlock(b, b.x + ux.toInt, b.y + uy.toInt, context)
+        return true
+      }
+
+      return false
     }
 
     def moveBlock(b: Block, x: Int, y: Int, context: PApplet): Unit = {
