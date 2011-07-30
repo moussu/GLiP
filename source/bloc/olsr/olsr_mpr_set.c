@@ -122,6 +122,7 @@ olsr_mpr_compute_N2()
         exists_link = TRUE;
         break;
       });
+
     if (exists_link)
       continue;
 
