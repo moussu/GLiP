@@ -128,7 +128,8 @@
     memset(Name##_set.bitmap, 0, Name##_set.bitmap_size);               \
     memset(Name##_set.tuples, 0,                                        \
            MaxSize * sizeof(olsr_##Tuple##_tuple_t));                   \
-    SET_FOREACH_(Name, Tuple, tuple, olsr_##Tuple##_tuple_init(tuple)); \
+    SET_FOREACH__(Name, Tuple, tuple,                                   \
+                  olsr_##Tuple##_tuple_init(tuple));                    \
     __VA_ARGS__                                                         \
   }                                                                     \
                                                                         \

@@ -1,4 +1,5 @@
 #include <string.h>
+#include "olsr_ack.h"
 #include "olsr_hello.h"
 #include "olsr_duplicate_set.h"
 #include "olsr_link_set.h"
@@ -36,6 +37,16 @@ olsr_forward_message(packet_byte_t* message, int size, interface_t iface)
   {
     case HELLO_MESSAGE:
       return;
+    case ACK:
+      if (header->to != state.address)
+        olsr_message_forward(message, size);
+      break;
+    case MESSAGE:
+    case ACK_MESSAGE:
+      if (header->to != state.address)
+        olsr_message_forward(message, size);
+      break;
+    case BCAST_MESSAGE:
     case TC_MESSAGE:
       if (!olsr_already_forwarded(header->addr, header->sn, iface))
         olsr_default_forward(message, size, iface);
@@ -52,8 +63,26 @@ void
 olsr_process_message(packet_byte_t* message, int size, interface_t iface)
 {
   const olsr_message_hdr_t* header = (olsr_message_hdr_t*)message;
+  const packet_byte_t* content = message + sizeof(olsr_message_hdr_t);
+
   switch (header->type)
   {
+    case ACK_MESSAGE:
+      if (header->to == state.address)
+        olsr_ack_send(header->addr, header->sn);
+      // No break here !!!
+    case MESSAGE:
+    case BCAST_MESSAGE:
+      if (header->to != state.address)
+        break;
+      DEBUG_PRINT("received from %d: %s", RED,
+                  header->addr, (const char*)content);
+      break;
+    case ACK:
+      if (header->to != state.address)
+        break;
+      olsr_ack_process(message, size);
+      break;
     case HELLO_MESSAGE:
       olsr_process_hello_message(message, size, iface);
       break;
@@ -178,10 +207,27 @@ olsr_default_forward(packet_byte_t* message, int size, interface_t iface)
 
   for (int iface = 0; iface < IFACES_COUNT; iface++)
   {
+    // FIXME: maybe we should avoid forwarding to the input iface...
     new_header.source_addr = state.iface_addresses[iface];
     olsr_send_message_content_(&new_header,
                                message + sizeof(olsr_message_hdr_t),
                                size - sizeof(olsr_message_hdr_t),
                                iface);
   }
+}
+
+void
+olsr_message_forward(packet_byte_t* message, int size)
+{
+#ifdef ERRORS
+  if (size < sizeof(olsr_message_hdr_t) || size > MAX_MESSAGE_SIZE)
+    ERROR("wrong message content size %lu", (size - sizeof(olsr_message_hdr_t)));
+#endif
+  olsr_message_t m;
+  memcpy(&m.header, message, sizeof(olsr_message_hdr_t));
+  memcpy(m.content, message + sizeof(olsr_message_hdr_t),
+         size - sizeof(olsr_message_hdr_t));
+  m.content_size = size - sizeof(olsr_message_hdr_t);
+  olsr_forward_to(&m);
+  DEBUG_PRINT("forwarding message to %d", YELLOW, m.header.to);
 }

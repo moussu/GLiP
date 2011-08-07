@@ -76,4 +76,8 @@ This is a TODO list of most urgent features to implement.
 
 * fix the starvation bug in receive tasks.
 
+* move ack timeout to a task in background
+* the 'to' field should be a header in a message content
+* ack tuple init is never called, so semaphores do not exist...
+
 Clément Moussu <clement.moussu@gmail.com>

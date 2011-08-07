@@ -7,6 +7,7 @@
 
 #include "utils/lfsr.h"
 #include "olsr.h"
+#include "olsr_ack.h"
 #include "olsr_constants.h"
 #include "olsr_ifaces.h"
 #include "olsr_state.h"
@@ -89,6 +90,7 @@ static int shifts[4][4] =
 static void
 olsr_application_task(void* pvParameters);
 
+
 void
 olsr_init(address_t uid)
 {
@@ -116,6 +118,7 @@ olsr_init(address_t uid)
   olsr_neighbor2_set_init();
   olsr_topology_set_init();
   olsr_routing_set_init();
+  olsr_ack_set_init();
 
   // Initialize services:
   olsr_send_init();
@@ -125,6 +128,7 @@ olsr_init(address_t uid)
 
   // Initialize application
   olsr_graph_set_init();
+
   xTaskCreate(olsr_application_task,
               (signed portCHAR*) "applicationTask",
               configMINIMAL_STACK_SIZE, NULL,
@@ -436,6 +440,13 @@ olsr_application_task(void* pvParameters)
 
 static pixel_t image[64] = {0};
 
+int start = 1;
+olsr_ack_t ack;
+void success(const olsr_ack_t* ack)
+{
+  DEBUG_PRINT("JOIEEEEEEEEEEE", RED);
+}
+
 void
 olsr_application_job()
 {
@@ -463,11 +474,59 @@ olsr_application_job()
 
   image_reset(image);
 
-  uint8_t* c = charmap('a' + i * w + j);
+  char letter = 'a' + i * w + j;
+  uint8_t* c = charmap(letter);
   for (int k = 0; k < 64; k++)
     image[k] = c[k] ? 0xf00 : 0x000;
 
   image_direct(image, north);
 
   simulator_set_image_pointer(image);
+
+  olsr_message_t message;
+  memcpy(message.content, &letter, 1);
+  memset(message.content + 1, 0, 1);
+  message.content_size = 2;
+
+  if (state.address == 4 << 2)
+    return;
+
+  if (start)
+  {
+    olsr_ack_init(&ack);
+    ack.success = success;
+    if (olsr_send_to_ack_async(&message,
+                               olsr_get_current_time()
+                               + olsr_ms_to_time(1000),
+                               4 << 2, &ack))
+      start = 0;
+    else
+      olsr_ack_destroy(&ack);
+  }
+  else if (ack.acknowledged)
+  {
+    DEBUG_PRINT("destroying ack", GREEN);
+    DEBUG_INC;
+    olsr_ack_destroy(&ack);
+    DEBUG_DEC;
+
+    DEBUG_PRINT("ack init", GREEN);
+    DEBUG_INC;
+    olsr_ack_init(&ack);
+    DEBUG_DEC;
+    ack.success = success;
+
+    DEBUG_PRINT("send to ack -> %d", GREEN, 4 << 2);
+    DEBUG_INC;
+    olsr_send_to_ack_async(&message,
+                           olsr_get_current_time()
+                           + olsr_ms_to_time(1000),
+                           4 << 2, &ack);
+    DEBUG_DEC;
+    DEBUG_PRINT("sn is %d", GREEN, message.header.sn);
+  }
+  else
+  {
+    DEBUG_PRINT("not acknowledged...", GREEN);
+  }
 }

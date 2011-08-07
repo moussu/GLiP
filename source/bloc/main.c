@@ -41,8 +41,7 @@ vApplicationStackOverflowHook(void)
 {
   /* This will get called if an overflow is detected in the stack of a task.
      Inspect pxCurrentTCB to see which was the offending task. */
-  for( ;; )
-  {}
+  for(;;) {}
 }
 
 void

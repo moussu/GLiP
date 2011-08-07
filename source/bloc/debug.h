@@ -57,14 +57,15 @@ void textcolor(color_t color);
 //# define DEBUG_NEIGHBOR2(S, ...)     DEBUG_PRINT(S, PINK,    ##__VA_ARGS__)
 //# define DEBUG_DUPLICATE(S, ...)     DEBUG_PRINT(S, GREEN,   ##__VA_ARGS__)
 //# define DEBUG_TOPOLOGY(S, ...)      DEBUG_PRINT(S, GRAY,    ##__VA_ARGS__)
-//# define DEBUG_LINK_SET(S, ...)      DEBUG_PRINT(S, PURPLE,  ##__VA_ARGS__)
-//# define DEBUG_MPR_SET(S, ...)       DEBUG_PRINT(S, BLUE,    ##__VA_ARGS__)
-//# define DEBUG_MS_SET(S, ...)        DEBUG_PRINT(S, RED,     ##__VA_ARGS__)
-//# define DEBUG_NEIGHBOR_SET(S, ...)  DEBUG_PRINT(S, YELLOW,  ##__VA_ARGS__)
-//# define DEBUG_NEIGHBOR2_SET(S, ...) DEBUG_PRINT(S, PINK,    ##__VA_ARGS__)
-//# define DEBUG_DUPLICATE_SET(S, ...) DEBUG_PRINT(S, GREEN,   ##__VA_ARGS__)
-//# define DEBUG_TOPOLOGY_SET(S, ...)  DEBUG_PRINT(S, GRAY,    ##__VA_ARGS__)
-//# define DEBUG_ROUTING_TABLE(S, ...) DEBUG_PRINT(S, GRAY,    ##__VA_ARGS__)
+# define DEBUG_LINK_SET(S, ...)      DEBUG_PRINT(S, PURPLE,  ##__VA_ARGS__)
+# define DEBUG_MPR_SET(S, ...)       DEBUG_PRINT(S, BLUE,    ##__VA_ARGS__)
+# define DEBUG_MS_SET(S, ...)        DEBUG_PRINT(S, RED,     ##__VA_ARGS__)
+# define DEBUG_NEIGHBOR_SET(S, ...)  DEBUG_PRINT(S, YELLOW,  ##__VA_ARGS__)
+# define DEBUG_NEIGHBOR2_SET(S, ...) DEBUG_PRINT(S, PINK,    ##__VA_ARGS__)
+# define DEBUG_DUPLICATE_SET(S, ...) DEBUG_PRINT(S, GREEN,   ##__VA_ARGS__)
+# define DEBUG_TOPOLOGY_SET(S, ...)  DEBUG_PRINT(S, GRAY,    ##__VA_ARGS__)
+# define DEBUG_ROUTING_TABLE(S, ...) DEBUG_PRINT(S, GRAY,    ##__VA_ARGS__)
+# define DEBUG_ACK_SET(S, ...)       DEBUG_PRINT(S, GRAY,    ##__VA_ARGS__)
 
 # ifndef DEBUG_SERVER
 #  define DEBUG_SERVER(S, ...)
@@ -129,6 +130,10 @@ void textcolor(color_t color);
 # ifndef DEBUG_ROUTING_TABLE
 #  define DEBUG_ROUTING_TABLE(S, ...)
 # endif
+# ifndef DEBUG_ACK_SET
+#  define DEBUG_ACK_SET(S, ...)
+# endif
+
 
 # ifdef WARNINGS
 #  define WARNING(S, ...)                       \

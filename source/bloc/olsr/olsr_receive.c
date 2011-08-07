@@ -132,16 +132,17 @@ olsr_receive_task(void* pvParameters)
   for (;;)
   {
 #ifdef DEBUG
-    if ((i = (i + 1) % 100) == 0)
+    vTaskDelay(100 / portTICK_RATE_MS);
+    if ((i = (i + 1) % 10) == 0)
     {
-      olsr_duplicate_set_print();
-      olsr_link_set_print();
-      olsr_mpr_set_print();
-      olsr_ms_set_print();
-      olsr_neighbor_set_print();
-      olsr_neighbor2_set_print();
-      olsr_topology_set_print();
-      olsr_routing_table_print();
+      //olsr_duplicate_set_print();
+      //olsr_link_set_print();
+      //olsr_mpr_set_print();
+      //olsr_ms_set_print();
+      //olsr_neighbor_set_print();
+      //olsr_neighbor2_set_print();
+      //olsr_topology_set_print();
+      //olsr_routing_table_print();
     }
     // FIXME: here it seems that the debug helps the concurrency. When
     // debug is disabled receive tasks seem to starve send tasks. A

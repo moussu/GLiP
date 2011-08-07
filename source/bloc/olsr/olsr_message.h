@@ -14,6 +14,10 @@ typedef enum
   TC_MESSAGE    = 2,
   MID_MESSAGE   = 3,
   HNA_MESSAGE   = 4,
+  ACK_MESSAGE   = 5,
+  BCAST_MESSAGE = 6,
+  ACK           = 7,
+  MESSAGE       = 8,
 } message_type_t;
 
 /*
@@ -75,6 +79,9 @@ typedef struct
      until the beginning of the next "Message Type" field (or - if
      there are no following messages - until the end of the packet). */
 
+  address_t to;
+  /* This field is to be used (R/W) only for regular messages ! */
+
   address_t addr;
   address_t source_addr;
   /* This field contains the main address of the node, which has
@@ -135,6 +142,7 @@ void olsr_forward_message(packet_byte_t* message, int size, interface_t iface);
 void olsr_process_message(packet_byte_t* message, int size, interface_t iface);
 void olsr_dispatch_message(packet_byte_t* message, int size, interface_t iface);
 void olsr_default_forward(packet_byte_t* message, int size, interface_t iface);
+void olsr_message_forward(packet_byte_t* message, int size);
 
 #ifdef DEBUG
 const char* olsr_message_type_str(message_type_t t);

@@ -7,10 +7,12 @@
 
 #include "comm/simulator.h"
 #include "utils/lfsr.h"
+#include "olsr_ack.h"
 #include "olsr_constants.h"
 #include "olsr_send.h"
 #include "olsr_state.h"
 #include "olsr_packet.h"
+#include "olsr_routing_table.h"
 
 static xQueueHandle send_queues[IFACES_COUNT];
 static void olsr_send_task(void* pvParameters);
@@ -86,16 +88,120 @@ void
 olsr_send_message_(olsr_message_t* message, interface_t iface)
 {
   static int message_sn = 0;
+  message->header.sn = message_sn++;
+  olsr_send_message__(message, iface);
+}
 
+void
+olsr_send_message__(olsr_message_t* message, interface_t iface)
+{
   // Just in case it hasn't been already done:
   message->header.size = message->content_size +
     sizeof(olsr_message_hdr_t);
   message->header.source_addr = state.iface_addresses[iface];
-  message->header.sn = message_sn++;
   DEBUG_SEND("putting message[sn:%d, size:%d] in sending queue",
              message->header.sn, (int)message->header.size);
   xQueueSend(send_queues[iface], message, portMAX_DELAY);
 }
+
+bool
+olsr_forward_to(olsr_message_t* message)
+{
+  olsr_routing_tuple_t* route = NULL;
+
+  FOREACH_ROUTE(
+    r,
+    if (r->R_dest_addr == message->header.to)
+    {
+      route = r;
+      break;
+    });
+
+  if (route)
+  {
+    message->header.ttl--;
+    if (message->header.ttl > 0)
+    {
+      olsr_send_message__(message, route->R_iface_addr - state.address);
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+bool
+olsr_send_to_(olsr_message_t* message, olsr_time_t Vtime, address_t addr)
+{
+  // Ensure we are dealing with a main address:
+  address_t main_addr = olsr_iface_to_main_address(addr);
+  // Set message type as regular message:
+  message->header.Vtime = olsr_serialize_time(Vtime);
+  // Set the dest address:
+  message->header.to = main_addr;
+
+  olsr_routing_tuple_t* route = NULL;
+
+  FOREACH_ROUTE(
+    r,
+    if (r->R_dest_addr == main_addr)
+    {
+      route = r;
+      break;
+    });
+
+  if (route)
+  {
+    message->header.ttl = route->R_dist;
+    DEBUG_PRINT("sending to %d", PINK, route->R_iface_addr);
+    olsr_send_message(message, route->R_iface_addr - state.address);
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+bool
+olsr_send_to(olsr_message_t* message, olsr_time_t Vtime, address_t addr)
+{
+  message->header.type = MESSAGE;
+  return olsr_send_to_(message, Vtime, addr);
+}
+
+bool
+olsr_send_to_ack_async(olsr_message_t* message, olsr_time_t Vtime,
+                       address_t addr, olsr_ack_t* ack)
+{
+  DEBUG_PRINT("send to ack async", GREEN);
+  ack->dest_addr = addr;
+  ack->time = olsr_get_current_time();
+  message->header.type = ACK_MESSAGE;
+  const bool ret = olsr_send_to_(message, Vtime, addr);
+  ack->sn = message->header.sn;
+  return ret;
+}
+
+bool
+olsr_send_to_ack(olsr_message_t* message, olsr_time_t Vtime, address_t addr,
+                 olsr_ack_t* ack, int timeout_ms, int max_tries)
+{
+  DEBUG_PRINT("send to ack", GREEN);
+  for (int i = 0; i < max_tries; i++)
+  {
+    DEBUG_PRINT("try %d", GREEN, i);
+    olsr_send_to_ack_async(message, Vtime, addr, ack);
+    if (olsr_ack_wait(ack, timeout_ms))
+    {
+      return TRUE;
+      break;
+    }
+  }
+
+  return FALSE;
+}
+
+void olsr_broadcast(olsr_message_t* message)
+{}
 
 static void
 olsr_send_task(void* pvParameters)
@@ -128,6 +234,7 @@ olsr_send_task(void* pvParameters)
 #ifdef DEBUG
       int i = 0;
 #endif
+
       int message_count = 0;
       int message_length = 0;
       int content_length = 0;
@@ -160,6 +267,10 @@ olsr_send_task(void* pvParameters)
 #ifdef ERRORS
         switch (message.header.type)
         {
+          case ACK:
+          case MESSAGE:
+          case ACK_MESSAGE:
+          case BCAST_MESSAGE:
           case HELLO_MESSAGE:
           case TC_MESSAGE:
           case MID_MESSAGE:
