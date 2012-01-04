@@ -49,7 +49,7 @@ package simulator.ether {
             println("Sending: " + msg);
 
             socket.send(new DatagramPacket(msg.getBytes, msg.size,
-                                           InetAddress.getLocalHost,
+                                           InetAddress.getByName("localhost"),
                                            answerPort))
             lock.release
             pool.refresh
